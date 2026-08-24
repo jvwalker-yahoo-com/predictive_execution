@@ -1,112 +1,208 @@
 # paste FastAPI server here
+# engine/predict.py
+# Full real-model predictive engine for your cloud backend
+# api/main.py
+# Full FastAPI backend wired to real models and dashboard endpoints
+# api/main.py
+# Complete FastAPI backend for Predictive Execution Dashboard
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import time
+import uuid
 
-from engine.orchestrator import Orchestrator
-from engine.database import engine, SessionLocal
-from api.models import Base, TemporalEpisode, BrainPerformanceSample, ArbitrationPrecedent
+from engine.predict import predict  # real models
 
-# Create DB tables on startup
-Base.metadata.create_all(bind=engine)
+app = FastAPI(title="Predictive Execution API")
 
-app = FastAPI(
-    title="Predictive Execution Engine",
-    description="Cloud-hosted execution engine with federation, arbitration, evolution, and temporal memory.",
-    version="1.0"
-)
-
-# Allow dashboard access from anywhere
+# Allow dashboard → backend communication
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Initialize orchestrator
-orch = Orchestrator()
+# ---------------------------------------------------------
+# GLOBAL STATE / HISTORY
+# ---------------------------------------------------------
+STATE = {
+    "regime": "NORMAL",
+    "risk": 0.1,
+    "slippage": 0,
+    "impact": 0,
+    "latency": 1,
+    "sync": 0,
+    "fill_quality": 1,
+}
+
+DECISION = {
+    "autonomous": "ON",
+    "final_mode": "OK",
+    "arbitration": [
+        {
+            "finalMode": "OK",
+            "reason": "Model arbitration",
+            "arbitrationNotes": {},
+        }
+    ],
+}
+
+FEDERATION = {
+    "outputs": ["RiskBrain", "ImpactBrain"],
+    "federation": "model",
+}
+
+ARBITRATION = {
+    "final_mode": "OK",
+    "reason": "model",
+    "arbitrationNotes": {},
+}
+
+EPISODES = []
+PERFORMANCE = []
+PRECEDENTS = []
 
 
-# -----------------------------
-# Core Engine Endpoints
-# -----------------------------
+# ---------------------------------------------------------
+# HELPERS
+# ---------------------------------------------------------
+def record_episode(pred):
+    episode = {
+        "id": str(uuid.uuid4()),
+        "symbol": "CLOUD",
+        "riskScore": pred["risk"],
+        "timestamp": time.time(),
+        "impactBps": pred["impact"],
+        "syncDriftMs": STATE["sync"],
+        "autopilotMode": DECISION["autonomous"],
+        "twinStatus": "ALIGNED",
+        "tags": [],
+    }
+    EPISODES.append(episode)
+    return episode
 
+
+def record_performance(pred):
+    sample = {
+        "id": len(PERFORMANCE) + 1,
+        "riskScore": pred["risk"],
+        "impactBps": pred["impact"],
+        "finalMode": pred["final_mode"],
+        "timestamp": time.time(),
+        "name": "RiskBrain",
+        "slippageBps": pred["slippage"],
+        "safetyTriggered": pred["final_mode"] != "OK",
+    }
+    PERFORMANCE.append(sample)
+    return sample
+
+
+def record_precedent(pred):
+    precedent = {
+        "timestamp": time.time(),
+        "final_mode": pred["final_mode"],
+        "risk": pred["risk"],
+        "impact": pred["impact"],
+        "latency": pred["latency"],
+        "slippage": pred["slippage"],
+    }
+    PRECEDENTS.append(precedent)
+    return precedent
+
+
+# ---------------------------------------------------------
+# MAIN TICK — RUN REAL MODELS + UPDATE EVERYTHING
+# ---------------------------------------------------------
+def run_tick():
+    global STATE, DECISION, FEDERATION, ARBITRATION
+
+    pred = predict()  # real model output
+
+    # Update state
+    STATE["risk"] = pred["risk"]
+    STATE["impact"] = pred["impact"]
+    STATE["latency"] = pred["latency"]
+    STATE["slippage"] = pred["slippage"]
+
+    # Update decision
+    DECISION["final_mode"] = pred["final_mode"]
+    DECISION["arbitration"] = [
+        {
+            "finalMode": pred["final_mode"],
+            "reason": "Model-driven arbitration",
+            "arbitrationNotes": {},
+        }
+    ]
+
+    # Update federation
+    FEDERATION["outputs"] = ["RiskBrain", "ImpactBrain"]
+    FEDERATION["federation"] = "model"
+
+    # Update arbitration
+    ARBITRATION["final_mode"] = pred["final_mode"]
+    ARBITRATION["reason"] = "model"
+    ARBITRATION["arbitrationNotes"] = {}
+
+    # Record history
+    episode = record_episode(pred)
+    perf = record_performance(pred)
+    precedent = record_precedent(pred)
+
+    return {
+        "prediction": pred,
+        "episode": episode,
+        "performance": perf,
+        "precedent": precedent,
+    }
+
+
+# ---------------------------------------------------------
+# ENDPOINTS — EXACTLY WHAT YOUR DASHBOARD CALLS
+# ---------------------------------------------------------
 @app.get("/state")
 def get_state():
-    """Return the engine's current state snapshot."""
-    return orch.state.snapshot()
+    run_tick()
+    return STATE
 
 
 @app.get("/decision")
 def get_decision():
-    """Run one full engine step and persist the results."""
-    return orch.step_with_persistence()
-
-
-@app.post("/feed")
-def post_feed(feed: dict):
-    """Inject external data into the engine."""
-    orch.update_state_from_feed(feed)
-    return {"status": "ok"}
-
-
-@app.get("/temporal")
-def get_temporal():
-    """Return temporal engine evaluation."""
-    return orch.temporal.evaluate()
+    run_tick()
+    return DECISION
 
 
 @app.get("/federation")
 def get_federation():
-    """Return federation vote results."""
-    return orch.federation.evaluate(orch.state)
+    run_tick()
+    return FEDERATION
 
 
 @app.get("/arbitration")
 def get_arbitration():
-    """Return arbitration ruling."""
-    fed = orch.federation.evaluate(orch.state)
-    return orch.arbitration.rule(orch.state, fed["outputs"], fed)
+    run_tick()
+    return ARBITRATION
 
-
-# -----------------------------
-# Database Access Endpoints
-# -----------------------------
 
 @app.get("/episodes")
-def get_episodes(limit: int = 50):
-    """Return recent temporal episodes."""
-    db = SessionLocal()
-    eps = (
-        db.query(TemporalEpisode)
-        .order_by(TemporalEpisode.timestamp.desc())
-        .limit(limit)
-        .all()
-    )
-    return eps
+def get_episodes():
+    run_tick()
+    return EPISODES[-10:]  # last 10 episodes
 
 
 @app.get("/performance")
-def get_performance(limit: int = 50):
-    """Return recent performance samples."""
-    db = SessionLocal()
-    samples = (
-        db.query(BrainPerformanceSample)
-        .order_by(BrainPerformanceSample.timestamp.desc())
-        .limit(limit)
-        .all()
-    )
-    return samples
+def get_performance():
+    run_tick()
+    return PERFORMANCE[-10:]  # last 10 samples
 
 
 @app.get("/precedents")
-def get_precedents(limit: int = 50):
-    """Return recent arbitration precedents."""
-    db = SessionLocal()
-    prec = (
-        db.query(ArbitrationPrecedent)
-        .order_by(ArbitrationPrecedent.timestamp.desc())
-        .limit(limit)
-        .all()
-    )
-    return prec
+def get_precedents():
+    run_tick()
+    return PRECEDENTS[-10:]  # last 10 precedents
+
+
+@app.get("/predict")
+def get_predict():
+    return run_tick()["prediction"]
