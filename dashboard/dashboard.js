@@ -1,4 +1,8 @@
 // paste dashboard JS here
+// Predictive Execution Dashboard — Updated Full File
+// Works with Render backend and real-model API
+// Predictive Execution Dashboard — Correct Version
+
 const BASE = "https://predictive-execution.onrender.com";
 
 async function fetchJSON(path) {
@@ -24,13 +28,13 @@ async function refresh() {
     JSON.stringify(await fetchJSON("/arbitration"), null, 2);
 
   document.getElementById("episodes").innerText =
-    JSON.stringify(await fetchJSON("/episodes?limit=10"), null, 2);
+    JSON.stringify(await fetchJSON("/episodes"), null, 2);
 
   document.getElementById("performance").innerText =
-    JSON.stringify(await fetchJSON("/performance?limit=10"), null, 2);
+    JSON.stringify(await fetchJSON("/performance"), null, 2);
 
   document.getElementById("precedents").innerText =
-    JSON.stringify(await fetchJSON("/precedents?limit=10"), null, 2);
+    JSON.stringify(await fetchJSON("/precedents"), null, 2);
 }
 
 setInterval(refresh, 3000);
