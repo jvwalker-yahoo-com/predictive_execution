@@ -1,5 +1,5 @@
 // paste dashboard JS here
-const BASE = "https://YOUR-RENDER-URL.onrender.com";
+const BASE = "https://predictive-execution.onrender.com";
 
 async function fetchJSON(path) {
   try {
