@@ -1,0 +1,39 @@
+/* paste dashboard CSS here */
+body {
+  font-family: system-ui, sans-serif;
+  background: #0b0c10;
+  color: #c5c6c7;
+  margin: 0;
+  padding: 20px;
+}
+
+h1 {
+  color: #66fcf1;
+  margin-bottom: 20px;
+}
+
+h2 {
+  color: #45a29e;
+  margin-bottom: 10px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+section {
+  background: #1f2833;
+  padding: 15px;
+  border-radius: 6px;
+}
+
+pre {
+  background: #0b0c10;
+  padding: 10px;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 12px;
+  max-height: 300px;
+}
