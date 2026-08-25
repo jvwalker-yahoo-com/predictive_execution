@@ -1,5 +1,5 @@
 # =========================================================
-# Predictive Execution API — FINAL GUARANTEED WORKING VERSION
+# Predictive Execution API — Full System (Federation + Modes + History)
 # =========================================================
 
 from fastapi import FastAPI
@@ -8,6 +8,9 @@ import time
 import uuid
 
 from engine.predict import predict
+from engine.federation import federation_engine
+from engine.mode_behaviour import apply_mode_behaviour
+from engine.mode_history import record_mode_switch, get_mode_history
 
 app = FastAPI(title="Predictive Execution API")
 
@@ -23,9 +26,8 @@ app.add_middleware(
 )
 
 # ---------------------------------------------------------
-# PURE GENERATORS — NO GLOBAL STATE, NO MUTATION
+# STATE GENERATOR
 # ---------------------------------------------------------
-
 def generate_state(pred):
     return {
         "regime": "NORMAL",
@@ -37,32 +39,55 @@ def generate_state(pred):
         "fill_quality": 1,
     }
 
-def generate_decision(pred):
+# ---------------------------------------------------------
+# DECISION GENERATOR
+# ---------------------------------------------------------
+def generate_decision(pred, federation):
     return {
         "autonomous": "ON",
-        "final_mode": pred["final_mode"],
+        "final_mode": federation["mode"],
         "arbitration": [
             {
-                "finalMode": pred["final_mode"],
-                "reason": "Model-driven arbitration",
-                "arbitrationNotes": {},
+                "finalMode": federation["mode"],
+                "reason": "; ".join(federation["reasons"]),
+                "arbitrationNotes": {
+                    "confidence": federation["confidence"],
+                    "votes": federation["votes"],
+                },
             }
         ],
     }
 
-def generate_federation():
+# ---------------------------------------------------------
+# FEDERATION PANEL
+# ---------------------------------------------------------
+def generate_federation(federation):
     return {
-        "outputs": ["RiskBrain", "ImpactBrain"],
-        "federation": "model",
+        "outputs": [o["name"] for o in federation["outputs"]],
+        "federation": {
+            "mode": federation["mode"],
+            "confidence": federation["confidence"],
+            "votes": federation["votes"],
+            "reasons": federation["reasons"],
+        },
     }
 
-def generate_arbitration(pred):
+# ---------------------------------------------------------
+# ARBITRATION PANEL
+# ---------------------------------------------------------
+def generate_arbitration(federation):
     return {
-        "final_mode": pred["final_mode"],
-        "reason": "model",
-        "arbitrationNotes": {},
+        "final_mode": federation["mode"],
+        "reason": "; ".join(federation["reasons"]),
+        "arbitrationNotes": {
+            "confidence": federation["confidence"],
+            "votes": federation["votes"],
+        },
     }
 
+# ---------------------------------------------------------
+# EPISODE GENERATOR
+# ---------------------------------------------------------
 def generate_episode(pred):
     return {
         "id": str(uuid.uuid4()),
@@ -76,22 +101,28 @@ def generate_episode(pred):
         "tags": [],
     }
 
-def generate_performance(pred):
+# ---------------------------------------------------------
+# PERFORMANCE PANEL
+# ---------------------------------------------------------
+def generate_performance(pred, federation):
     return {
         "id": int(time.time()),
         "riskScore": pred["risk"],
         "impactBps": pred["impact"],
-        "finalMode": pred["final_mode"],
+        "finalMode": federation["mode"],
         "timestamp": time.time(),
-        "name": "RiskBrain",
+        "name": "Federation",
         "slippageBps": pred["slippage"],
-        "safetyTriggered": pred["final_mode"] != "OK",
+        "safetyTriggered": federation["mode"] != "LIVE",
     }
 
-def generate_precedent(pred):
+# ---------------------------------------------------------
+# PRECEDENT PANEL
+# ---------------------------------------------------------
+def generate_precedent(pred, federation):
     return {
         "timestamp": time.time(),
-        "final_mode": pred["final_mode"],
+        "final_mode": federation["mode"],
         "risk": pred["risk"],
         "impact": pred["impact"],
         "latency": pred["latency"],
@@ -99,9 +130,8 @@ def generate_precedent(pred):
     }
 
 # ---------------------------------------------------------
-# SINGLE SAFE TICK — ALWAYS RETURNS VALID JSON
+# MAIN TICK — FULL PIPELINE
 # ---------------------------------------------------------
-
 def run_tick():
     raw = predict() or {}
 
@@ -113,21 +143,34 @@ def run_tick():
         "final_mode": raw.get("final_mode", "OK"),
     }
 
+    # Build state
+    state = generate_state(pred)
+
+    # Federation decides mode
+    federation = federation_engine["evaluate"](state)
+    mode = federation["mode"]
+
+    # Apply mode behaviour
+    adjusted_pred = apply_mode_behaviour(pred, mode)
+
+    # Record mode switch
+    record_mode_switch(mode, federation, adjusted_pred)
+
     return {
-        "prediction": pred,
-        "state": generate_state(pred),
-        "decision": generate_decision(pred),
-        "federation": generate_federation(),
-        "arbitration": generate_arbitration(pred),
-        "episode": generate_episode(pred),
-        "performance": generate_performance(pred),
-        "precedent": generate_precedent(pred),
+        "prediction": adjusted_pred,
+        "state": state,
+        "decision": generate_decision(adjusted_pred, federation),
+        "federation": generate_federation(federation),
+        "arbitration": generate_arbitration(federation),
+        "episode": generate_episode(adjusted_pred),
+        "performance": generate_performance(adjusted_pred, federation),
+        "precedent": generate_precedent(adjusted_pred, federation),
+        "mode_history": get_mode_history(),
     }
 
 # ---------------------------------------------------------
-# ENDPOINTS — ALL SAFE, ALL STATELESS
+# ENDPOINTS
 # ---------------------------------------------------------
-
 @app.get("/state")
 def get_state():
     return run_tick()["state"]
@@ -159,3 +202,7 @@ def get_precedents():
 @app.get("/predict")
 def get_predict():
     return run_tick()["prediction"]
+
+@app.get("/mode_history")
+def get_mode_history_endpoint():
+    return get_mode_history()
