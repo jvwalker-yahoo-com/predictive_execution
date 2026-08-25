@@ -27,7 +27,7 @@ app.add_middleware(
 # static/index.html
 # static/dashboard.js
 # static/styles.css
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+app.mount("/", StaticFiles(directory="dashboard", html=True), name="dashboard")
 
 # -----------------------------
 # MOCK DATA STORAGE
