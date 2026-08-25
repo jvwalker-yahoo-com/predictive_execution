@@ -1,11 +1,9 @@
 # =========================================================
 # Simple Static Dashboard Server
 # =========================================================
-import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-import time
 
 app = FastAPI()
 
@@ -23,119 +21,120 @@ app.add_middleware(
 # -----------------------------
 # STATIC DASHBOARD
 # -----------------------------
-# Make sure your dashboard files are in /static:
-# static/index.html
-# static/dashboard.js
-# static/styles.css
+# IMPORTANT: dashboard/index.html MUST exist
 app.mount("/", StaticFiles(directory="dashboard", html=True), name="dashboard")
 
 # -----------------------------
-# MOCK DATA STORAGE
-# (Replace with your real engine)
+# CORE ENDPOINTS
 # -----------------------------
-STATE = {"mode": "LIVE", "timestamp": time.time()}
-DECISION = {"action": "BUY", "confidence": 0.82}
-FEDERATION = {
-    "federation": {"mode": "LIVE", "confidence": 0.88},
-    "outputs": [
-        {
-            "name": "BrainA",
-            "mode": "LIVE",
-            "confidence": 80,
-            "riskScore": 0.22,
-            "impactBps": 0.4,
-            "slippageBps": 0.1,
-            "diagnostics": ["stable", "low-risk"]
-        },
-        {
-            "name": "BrainB",
-            "mode": "SHADOW",
-            "confidence": 55,
-            "riskScore": 0.31,
-            "impactBps": 0.6,
-            "slippageBps": 0.2,
-            "diagnostics": ["medium-risk"]
-        }
-    ]
-}
-
-ARBITRATION = {"winner": "BrainA", "reason": "higher confidence"}
-
-EPISODES = [{"id": 1, "brain": "BrainA", "reward": 0.12}]
-PERFORMANCE = {"samples": [{"brain": "BrainA", "reward": 0.12}]}
-PRECEDENTS = [{"case": "risk-high", "result": "HALT"}]
-
-MODE_HISTORY = [
-    {
-        "timestamp": time.time() - 60,
-        "mode": "LIVE",
-        "reasons": ["stable"],
-        "confidence": 0.88,
-        "risk": 0.22,
-        "impact": 0.4,
-        "latency": 120,
-        "slippage": 0.1
-    },
-    {
-        "timestamp": time.time() - 30,
-        "mode": "SHADOW",
-        "reasons": ["risk rising"],
-        "confidence": 0.55,
-        "risk": 0.31,
-        "impact": 0.6,
-        "latency": 240,
-        "slippage": 0.2
-    }
-]
-
-# -----------------------------
-# ENDPOINTS USED BY COCKPIT
-# -----------------------------
-
 @app.get("/state")
 def get_state():
-    return STATE
+    return {
+        "regime": "NORMAL",
+        "risk": 0.1902,
+        "slippage": 0.387,
+        "impact": 2.495,
+        "latency": 16,
+        "sync": 0,
+        "fill_quality": 1
+    }
 
 @app.get("/decision")
 def get_decision():
-    return DECISION
+    return {
+        "autonomous": "ON",
+        "final_mode": "RISK_HIGH",
+        "arbitration": [
+            {
+                "finalMode": "RISK_HIGH",
+                "reason": "Model-driven arbitration",
+                "arbitrationNotes": {}
+            }
+        ]
+    }
 
 @app.get("/federation")
 def get_federation():
-    return FEDERATION
+    return {
+        "outputs": ["RiskBrain", "ImpactBrain"],
+        "federation": "model"
+    }
 
 @app.get("/arbitration")
 def get_arbitration():
-    return ARBITRATION
-
-@app.get("/episodes")
-def get_episodes():
-    return EPISODES
-
-@app.get("/performance")
-def get_performance():
-    return PERFORMANCE
-
-@app.get("/precedents")
-def get_precedents():
-    return PRECEDENTS
-
-@app.get("/mode_history")
-def get_mode_history():
-    return MODE_HISTORY
-
-@app.get("/predict")
-def get_predict():
-    # Simulated live tick
     return {
-        "risk": 0.22,
-        "impact": 0.4,
-        "slippage": 0.1,
-        "latency": 120
+        "final_mode": "SLIPPAGE_HIGH",
+        "reason": "model",
+        "arbitrationNotes": {}
     }
 
 # -----------------------------
-# RUN LOCAL SERVER
+# MISSING ENDPOINTS (NOW ADDED)
 # -----------------------------
-if __name__ == "__main__":
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
+@app.get("/episodes")
+def get_episodes():
+    return {
+        "id": "1577b3d8-8f1f-4180-a441-768aa",
+        "symbol": "CLOUD",
+        "riskScore": 0.174,
+        "timestamp": 1787681230.3143666,
+        "impactPts": 1.804,
+        "syncDriftPts": 0,
+        "autopilotMode": "ON",
+        "twinStatus": "ALIGNED",
+        "tags": {}
+    }
+
+@app.get("/performance")
+def get_performance():
+    return {
+        "id": 1787681230,
+        "riskScore": 0.3135,
+        "impactPts": 2.559,
+        "final_mode": "RISK_HIGH",
+        "timestamp": 1787681230.318327,
+        "name": "RiskBrain",
+        "slippageBPS": 0.527,
+        "safetyTriggered": True
+    }
+
+@app.get("/precedents")
+def get_precedents():
+    return {
+        "timestamp": 1787681230.3141093,
+        "final_mode": "OK",
+        "risk": 0.1273,
+        "impact": 1.575,
+        "latency": 2,
+        "slippage": 0.062
+    }
+
+@app.get("/timeline")
+def get_timeline():
+    return {"error": "No timeline data yet"}
+
+@app.get("/diagnostics")
+def get_diagnostics():
+    return {"status": "OK", "message": "Diagnostics placeholder"}
+
+@app.get("/risk_matrix")
+def get_risk_matrix():
+    return {
+        "risk": 0.075,
+        "impact": 2.055,
+        "slippage": 0.200,
+        "latency": 0.000,
+        "quadrants": {
+            "risk_impact": "CRITICAL",
+            "risk_slippage": "SAFE",
+            "risk_latency": "CRITICAL"
+        }
+    }
+
+@app.get("/heatmap")
+def get_heatmap():
+    return {"error": "No heatmap data yet"}
+
+@app.get("/safety_triggers")
+def get_safety_triggers():
+    return {"error": "No safety triggers yet"}
