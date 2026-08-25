@@ -8,7 +8,7 @@ let slippageTrend = [];
 let impactTrend = [];
 const TREND_LIMIT = 50;
 
-// Generic fetch
+// ---------- generic fetch ----------
 async function safeFetch(endpoint, target) {
     try {
         const res = await fetch(`${API_BASE}/${endpoint}`);
@@ -19,7 +19,7 @@ async function safeFetch(endpoint, target) {
     }
 }
 
-// Brain diagnostics
+// ---------- brain diagnostics ----------
 async function fetchDiagnostics() {
     try {
         const res = await fetch(`${API_BASE}/federation`);
@@ -45,7 +45,7 @@ async function fetchDiagnostics() {
     }
 }
 
-// Federation visualizer
+// ---------- federation visualizer ----------
 async function fetchFederationVisualizer() {
     try {
         const res = await fetch(`${API_BASE}/federation`);
@@ -78,7 +78,7 @@ async function fetchFederationVisualizer() {
     }
 }
 
-// Mode timeline
+// ---------- mode timeline ----------
 async function fetchModeTimeline() {
     try {
         const res = await fetch(`${API_BASE}/mode_history`);
@@ -102,7 +102,7 @@ async function fetchModeTimeline() {
     }
 }
 
-// Mode analytics
+// ---------- mode analytics ----------
 async function fetchModeAnalytics() {
     try {
         const res = await fetch(`${API_BASE}/mode_history`);
@@ -162,7 +162,7 @@ Average Risk by Mode:
     }
 }
 
-// Safety triggers
+// ---------- safety triggers ----------
 async function fetchSafetyTriggers() {
     try {
         const res = await fetch(`${API_BASE}/mode_history`);
@@ -187,7 +187,7 @@ async function fetchSafetyTriggers() {
     }
 }
 
-// Confidence heatmap
+// ---------- confidence heatmap ----------
 async function fetchConfidenceHeatmap() {
     try {
         const res = await fetch(`${API_BASE}/federation`);
@@ -208,7 +208,7 @@ async function fetchConfidenceHeatmap() {
     }
 }
 
-// Slippage & impact trends
+// ---------- slippage & impact trends ----------
 async function fetchTrendCharts() {
     try {
         const res = await fetch(`${API_BASE}/predict`);
@@ -236,7 +236,217 @@ ${impactTrend.map(v => v.toFixed(2)).join("  ")}
     }
 }
 
-// Main loop
+// ---------- brain performance ----------
+async function fetchBrainPerformance() {
+    try {
+        const resFed = await fetch(`${API_BASE}/federation`);
+        const resPerf = await fetch(`${API_BASE}/performance`);
+        const fed = await resFed.json();
+        const perf = await resPerf.json();
+
+        const outputs = fed.federation.outputs || [];
+        const scores = {};
+
+        outputs.forEach(o => {
+            scores[o.name] = {
+                confidence: o.confidence,
+                risk: o.riskScore,
+                impact: o.impactBps,
+                slippage: o.slippageBps,
+                episodes: 0,
+            };
+        });
+
+        (perf.samples || []).forEach(s => {
+            const name = s.brain;
+            if (!scores[name]) return;
+            scores[name].episodes += 1;
+        });
+
+        const formatted = Object.entries(scores).map(([name, s]) => {
+            return `${name}
+  Episodes:   ${s.episodes}
+  Conf:       ${s.confidence}
+  Risk:       ${s.risk}
+  Impact:     ${s.impact}
+  Slippage:   ${s.slippage}
+`;
+        }).join("\n");
+
+        document.getElementById("brainPerformance").textContent =
+            formatted || "No performance data yet.";
+
+    } catch (err) {
+        document.getElementById("brainPerformance").textContent =
+            JSON.stringify({ error: "Connection failed" }, null, 2);
+    }
+}
+
+// ---------- mode stability ----------
+async function fetchModeStability() {
+    try {
+        const res = await fetch(`${API_BASE}/mode_history`);
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length < 2) {
+            document.getElementById("modeStability").textContent = "Not enough history.";
+            return;
+        }
+
+        let switches = 0;
+        let lastMode = data[0].mode;
+        let haltCount = 0;
+        let totalDuration = 0;
+
+        for (let i = 1; i < data.length; i++) {
+            const e = data[i];
+            if (e.mode !== lastMode) switches++;
+            if (e.mode === "HALT") haltCount++;
+            totalDuration += (data[i].timestamp - data[i - 1].timestamp);
+            lastMode = e.mode;
+        }
+
+        const avgInterval = totalDuration / (data.length - 1);
+        const volatility = (switches / data.length).toFixed(3);
+
+        const formatted = `
+Mode Stability:
+  Switches:          ${switches}
+  HALT events:       ${haltCount}
+  Avg interval (s):  ${avgInterval.toFixed(1)}
+  Volatility score:  ${volatility}
+`;
+
+        document.getElementById("modeStability").textContent = formatted;
+
+    } catch (err) {
+        document.getElementById("modeStability").textContent =
+            JSON.stringify({ error: "Connection failed" }, null, 2);
+    }
+}
+
+// ---------- live risk matrix ----------
+async function fetchRiskMatrix() {
+    try {
+        const res = await fetch(`${API_BASE}/predict`);
+        const data = await res.json();
+
+        const risk = data.risk;
+        const impact = data.impact;
+        const slippage = data.slippage;
+        const latency = data.latency;
+
+        function quadrant(r, i) {
+            if (r < 0.3 && i < 0.3) return "SAFE";
+            if (r < 0.6 && i < 0.6) return "WATCH";
+            if (r < 0.8 && i < 0.8) return "DANGER";
+            return "CRITICAL";
+        }
+
+        const qRI = quadrant(risk, impact);
+        const qRS = quadrant(risk, slippage);
+        const qRL = quadrant(risk, latency);
+
+        const formatted = `
+Risk Matrix:
+  Risk:     ${risk.toFixed(3)}
+  Impact:   ${impact.toFixed(3)}
+  Slippage: ${slippage.toFixed(3)}
+  Latency:  ${latency.toFixed(3)}
+
+Quadrants:
+  Risk × Impact:   ${qRI}
+  Risk × Slippage: ${qRS}
+  Risk × Latency:  ${qRL}
+`;
+
+        document.getElementById("riskMatrix").textContent = formatted;
+
+    } catch (err) {
+        document.getElementById("riskMatrix").textContent =
+            JSON.stringify({ error: "Connection failed" }, null, 2);
+    }
+}
+
+// ---------- risk bubble chart ----------
+async function fetchRiskBubble() {
+    try {
+        const res = await fetch(`${API_BASE}/mode_history`);
+        const data = await res.json();
+
+        const bubbles = data.slice(-20).map(e => {
+            const size = Math.max(1, Math.round(e.risk * 10));
+            const bubble = "●".repeat(size);
+            const ts = new Date(e.timestamp * 1000).toLocaleTimeString();
+            return `${ts} ${bubble} (${e.mode} r=${e.risk.toFixed(2)} i=${e.impact.toFixed(2)})`;
+        }).join("\n");
+
+        document.getElementById("riskBubble").textContent =
+            bubbles || "No recent risk samples.";
+
+    } catch (err) {
+        document.getElementById("riskBubble").textContent =
+            JSON.stringify({ error: "Connection failed" }, null, 2);
+    }
+}
+
+// ---------- latency spikes ----------
+async function fetchLatencySpikes() {
+    try {
+        const res = await fetch(`${API_BASE}/mode_history`);
+        const data = await res.json();
+
+        const spikes = data
+            .filter(e => e.latency > 200)
+            .map(e => {
+                const ts = new Date(e.timestamp * 1000).toLocaleTimeString();
+                return `${ts} latency=${e.latency}ms mode=${e.mode}`;
+            }).join("\n");
+
+        document.getElementById("latencySpikes").textContent =
+            spikes || "No latency spikes detected.";
+
+    } catch (err) {
+        document.getElementById("latencySpikes").textContent =
+            JSON.stringify({ error: "Connection failed" }, null, 2);
+    }
+}
+
+// ---------- slippage anomalies ----------
+async function fetchSlippageAnomalies() {
+    try {
+        const res = await fetch(`${API_BASE}/mode_history`);
+        const data = await res.json();
+
+        const anomalies = data
+            .filter(e => Math.abs(e.slippage) > 5)
+            .map(e => {
+                const ts = new Date(e.timestamp * 1000).toLocaleTimeString();
+                return `${ts} slippage=${e.slippage.toFixed(2)}bps mode=${e.mode}`;
+            }).join("\n");
+
+        document.getElementById("slippageAnomalies").textContent =
+            anomalies || "No slippage anomalies detected.";
+
+    } catch (err) {
+        document.getElementById("slippageAnomalies").textContent =
+            JSON.stringify({ error: "Connection failed" }, null, 2);
+    }
+}
+
+// ---------- auto-collapse panels ----------
+function initPanelCollapsing() {
+    const panels = document.querySelectorAll(".panel");
+    panels.forEach(panel => {
+        const header = panel.querySelector("h2");
+        if (!header) return;
+        header.addEventListener("click", () => {
+            panel.classList.toggle("collapsed");
+        });
+    });
+}
+
+// ---------- main loop ----------
 function updateDashboard() {
     safeFetch("state", "state");
     safeFetch("decision", "decision");
@@ -253,7 +463,16 @@ function updateDashboard() {
     fetchSafetyTriggers();
     fetchConfidenceHeatmap();
     fetchTrendCharts();
+    fetchBrainPerformance();
+    fetchModeStability();
+    fetchRiskMatrix();
+    fetchRiskBubble();
+    fetchLatencySpikes();
+    fetchSlippageAnomalies();
 }
 
-setInterval(updateDashboard, 1000);
-updateDashboard();
+document.addEventListener("DOMContentLoaded", () => {
+    initPanelCollapsing();
+    updateDashboard();
+    setInterval(updateDashboard, 1000);
+});
