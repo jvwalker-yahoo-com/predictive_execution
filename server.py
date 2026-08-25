@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 app = FastAPI()
 
 # -----------------------------
-# CORS (dashboard → API)
+# CORS
 # -----------------------------
 app.add_middleware(
     CORSMiddleware,
@@ -30,10 +30,10 @@ app.mount("/", StaticFiles(directory="dashboard", html=True), name="dashboard")
 def get_state():
     return {
         "regime": "NORMAL",
-        "risk": 0.2002,
-        "slippage": 1.885,
-        "impact": 1.173,
-        "latency": 14,
+        "risk": 0.1184,
+        "slippage": 0.267,
+        "impact": 2.338,
+        "latency": 3,
         "sync": 0,
         "fill_quality": 1
     }
@@ -42,9 +42,9 @@ def get_state():
 def get_decision():
     return {
         "autonomous": "ON",
-        "final_mode": "RISK_HIGH",
+        "final_mode": "IMPACT_HIGH",
         "arbitration": {
-            "finalMode": "RISK_HIGH",
+            "FinalMode": "IMPACT_HIGH",
             "reason": "Model-driven arbitration",
             "arbitrationNotes": {}
         }
@@ -60,52 +60,61 @@ def get_federation():
 @app.get("/arbitration")
 def get_arbitration():
     return {
-        "final_mode": "RISK_HIGH",
+        "final_mode": "OK",
         "reason": "model",
         "arbitrationNotes": {}
     }
 
 # -----------------------------
-# MISSING ENDPOINTS (NOW ADDED)
+# LIST-BASED PANELS (FIXED)
 # -----------------------------
 @app.get("/episodes")
 def get_episodes():
-    return {
-        "id": "87af4fcb-9f72-49de-b452-fc468",
-        "symbol": "CLOUD",
-        "riskScore": 0.1325,
-        "impactDps": 2.715,
-        "timestamp": 1787681855.3482394,
-        "syncDriftPts": 0,
-        "autopilotMode": "ON",
-        "twinStatus": "ALIGNED",
-        "tags": []
-    }
+    return [
+        {
+            "id": "39bb1478-494b-4c23-b058-a962b",
+            "symbol": "CLOUD",
+            "riskScore": 0.192,
+            "timestamp": 1787682135.3995852,
+            "impactBps": 2.209,
+            "syncDriftPs": 0,
+            "agencyMode": "ON",
+            "twinStatus": "ALIGNED",
+            "tags": []
+        }
+    ]
 
 @app.get("/performance")
 def get_performance():
-    return {
-        "id": 1787681855,
-        "riskScore": 0.2577,
-        "impactDps": 2.92,
-        "finalMode": "IMPACT_HIGH",
-        "timestamp": 1787681855.353329,
-        "name": "RiskBrain",
-        "slippageDps": 0.387,
-        "safetyTriggered": True
-    }
+    return [
+        {
+            "id": 1787682135,
+            "riskScore": 0.2547,
+            "impactBps": 1.0399,
+            "finalMode": "OK",
+            "timestamp": 1787682135.3981843,
+            "name": "RiskBrain",
+            "slippageBps": 1.2,
+            "safetyTriggered": False
+        }
+    ]
 
 @app.get("/precedents")
 def get_precedents():
-    return {
-        "timestamp": 1787681855.3539312,
-        "final_mode": "OK",
-        "risk": 0.8043,
-        "impact": 1.528,
-        "latency": 12,
-        "slippage": 0.524
-    }
+    return [
+        {
+            "timestamp": 1787682135.398245,
+            "final_mode": "OK",
+            "risk": 0.1098,
+            "impact": 0.123,
+            "latency": 22,
+            "slippage": 0.756
+        }
+    ]
 
+# -----------------------------
+# REMAINING PANELS
+# -----------------------------
 @app.get("/timeline")
 def get_timeline():
     return {"error": "Connection failed"}
@@ -114,24 +123,32 @@ def get_timeline():
 def get_diagnostics():
     return {"error": "Connection failed"}
 
-@app.get("/risk_matrix")
-def get_risk_matrix():
-    return {
-        "risk": 0.138,
-        "impact": 0.216,
-        "slippage": 0.354,
-        "latency": 16.000,
-        "quadrants": {
-            "risk_impact": "SAFE",
-            "risk_slippage": "WATCH",
-            "risk_latency": "CRITICAL"
-        }
-    }
+@app.get("/safety_triggers")
+def get_safety_triggers():
+    return {"error": "Connection failed"}
 
 @app.get("/heatmap")
 def get_heatmap():
     return {"error": "Connection failed"}
 
-@app.get("/safety_triggers")
-def get_safety_triggers():
+@app.get("/bubble_chart")
+def get_bubble_chart():
     return {"error": "Connection failed"}
+
+@app.get("/visualizer")
+def get_visualizer():
+    return {"error": "Connection failed"}
+
+@app.get("/risk_matrix")
+def get_risk_matrix():
+    return {
+        "risk": 0.091,
+        "impact": 0.176,
+        "slippage": 0.983,
+        "latency": 7.0,
+        "quadrants": {
+            "risk_impact": "CRITICAL",
+            "risk_slippage": "CRITICAL",
+            "risk_latency": "CRITICAL"
+        }
+    }
