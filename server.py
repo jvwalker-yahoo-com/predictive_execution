@@ -21,7 +21,6 @@ app.add_middleware(
 # -----------------------------
 # STATIC DASHBOARD
 # -----------------------------
-# IMPORTANT: dashboard/index.html MUST exist
 app.mount("/", StaticFiles(directory="dashboard", html=True), name="dashboard")
 
 # -----------------------------
@@ -31,10 +30,10 @@ app.mount("/", StaticFiles(directory="dashboard", html=True), name="dashboard")
 def get_state():
     return {
         "regime": "NORMAL",
-        "risk": 0.1902,
-        "slippage": 0.387,
-        "impact": 2.495,
-        "latency": 16,
+        "risk": 0.2002,
+        "slippage": 1.885,
+        "impact": 1.173,
+        "latency": 14,
         "sync": 0,
         "fill_quality": 1
     }
@@ -44,13 +43,11 @@ def get_decision():
     return {
         "autonomous": "ON",
         "final_mode": "RISK_HIGH",
-        "arbitration": [
-            {
-                "finalMode": "RISK_HIGH",
-                "reason": "Model-driven arbitration",
-                "arbitrationNotes": {}
-            }
-        ]
+        "arbitration": {
+            "finalMode": "RISK_HIGH",
+            "reason": "Model-driven arbitration",
+            "arbitrationNotes": {}
+        }
     }
 
 @app.get("/federation")
@@ -63,7 +60,7 @@ def get_federation():
 @app.get("/arbitration")
 def get_arbitration():
     return {
-        "final_mode": "SLIPPAGE_HIGH",
+        "final_mode": "RISK_HIGH",
         "reason": "model",
         "arbitrationNotes": {}
     }
@@ -74,67 +71,67 @@ def get_arbitration():
 @app.get("/episodes")
 def get_episodes():
     return {
-        "id": "1577b3d8-8f1f-4180-a441-768aa",
+        "id": "87af4fcb-9f72-49de-b452-fc468",
         "symbol": "CLOUD",
-        "riskScore": 0.174,
-        "timestamp": 1787681230.3143666,
-        "impactPts": 1.804,
+        "riskScore": 0.1325,
+        "impactDps": 2.715,
+        "timestamp": 1787681855.3482394,
         "syncDriftPts": 0,
         "autopilotMode": "ON",
         "twinStatus": "ALIGNED",
-        "tags": {}
+        "tags": []
     }
 
 @app.get("/performance")
 def get_performance():
     return {
-        "id": 1787681230,
-        "riskScore": 0.3135,
-        "impactPts": 2.559,
-        "final_mode": "RISK_HIGH",
-        "timestamp": 1787681230.318327,
+        "id": 1787681855,
+        "riskScore": 0.2577,
+        "impactDps": 2.92,
+        "finalMode": "IMPACT_HIGH",
+        "timestamp": 1787681855.353329,
         "name": "RiskBrain",
-        "slippageBPS": 0.527,
+        "slippageDps": 0.387,
         "safetyTriggered": True
     }
 
 @app.get("/precedents")
 def get_precedents():
     return {
-        "timestamp": 1787681230.3141093,
+        "timestamp": 1787681855.3539312,
         "final_mode": "OK",
-        "risk": 0.1273,
-        "impact": 1.575,
-        "latency": 2,
-        "slippage": 0.062
+        "risk": 0.8043,
+        "impact": 1.528,
+        "latency": 12,
+        "slippage": 0.524
     }
 
 @app.get("/timeline")
 def get_timeline():
-    return {"error": "No timeline data yet"}
+    return {"error": "Connection failed"}
 
 @app.get("/diagnostics")
 def get_diagnostics():
-    return {"status": "OK", "message": "Diagnostics placeholder"}
+    return {"error": "Connection failed"}
 
 @app.get("/risk_matrix")
 def get_risk_matrix():
     return {
-        "risk": 0.075,
-        "impact": 2.055,
-        "slippage": 0.200,
-        "latency": 0.000,
+        "risk": 0.138,
+        "impact": 0.216,
+        "slippage": 0.354,
+        "latency": 16.000,
         "quadrants": {
-            "risk_impact": "CRITICAL",
-            "risk_slippage": "SAFE",
+            "risk_impact": "SAFE",
+            "risk_slippage": "WATCH",
             "risk_latency": "CRITICAL"
         }
     }
 
 @app.get("/heatmap")
 def get_heatmap():
-    return {"error": "No heatmap data yet"}
+    return {"error": "Connection failed"}
 
 @app.get("/safety_triggers")
 def get_safety_triggers():
-    return {"error": "No safety triggers yet"}
+    return {"error": "Connection failed"}
