@@ -62,18 +62,19 @@ def latency_brain():
     }
 
 def diagnostics_engine():
+    now = time.time()
     return {
-        "RiskBrain": {"status": "OK", "drift": round(random.uniform(0.0, 0.05), 4), "lastUpdate": time.time()},
-        "ImpactBrain": {"status": "OK", "drift": round(random.uniform(0.0, 0.05), 4), "lastUpdate": time.time()},
-        "SlippageBrain": {"status": "OK", "drift": round(random.uniform(0.0, 0.05), 4), "lastUpdate": time.time()},
-        "LatencyBrain": {"status": "OK", "drift": round(random.uniform(0.0, 0.05), 4), "lastUpdate": time.time()}
+        "RiskBrain": {"status": "OK", "drift": round(random.uniform(0.0, 0.05), 4), "lastUpdate": now},
+        "ImpactBrain": {"status": "OK", "drift": round(random.uniform(0.0, 0.05), 4), "lastUpdate": now},
+        "SlippageBrain": {"status": "OK", "drift": round(random.uniform(0.0, 0.05), 4), "lastUpdate": now},
+        "LatencyBrain": {"status": "OK", "drift": round(random.uniform(0.0, 0.05), 4), "lastUpdate": now}
     }
 
 mode_history = []
 
-def mode_switch_engine(mode):
+def mode_switch_engine(mode: str):
     mode_history.append({"timestamp": time.time(), "mode": mode})
-    if len(mode_history) > 20:
+    if len(mode_history) > 50:
         mode_history.pop(0)
 
 def safety_engine(risk, impact, slippage, latency):
@@ -106,7 +107,7 @@ def heatmap_engine():
     }
 
 # -----------------------------
-# LIVE ENDPOINTS
+# LIVE ENDPOINTS (PRIMARY)
 # -----------------------------
 
 @app.get("/state")
@@ -148,7 +149,7 @@ def get_decision():
 def get_federation():
     return {
         "outputs": ["RiskBrain", "ImpactBrain"],
-        "federation": "model1"
+        "federation": "model"
     }
 
 @app.get("/arbitration")
@@ -202,14 +203,14 @@ def get_heatmap():
 def get_episodes():
     return [
         {
-            "id": "192a67d0-bf74-4752-8427-bf1a6",
+            "id": "a9e0e17a-71a4-4c17-a795-61a5b",
             "symbol": "CLOUD",
             "riskScore": round(random.uniform(0.1, 0.3), 4),
             "timestamp": time.time(),
-            "impactBps": round(random.uniform(0.5, 2.5), 4),
-            "syncDriftMs": 0,
+            "impactDps": round(random.uniform(0.5, 2.5), 4),
+            "syncDrift": 0,
             "autopilotMode": "ON",
-            "latStatus": "ALIGNED",
+            "twinStatus": "ALIGNED",
             "tags": []
         }
     ]
@@ -219,12 +220,12 @@ def get_performance():
     return [
         {
             "id": int(time.time()),
-            "riskScore": round(random.uniform(0.1, 0.3), 4),
-            "impactBps": round(random.uniform(0.1, 2.0), 4),
+            "riskScore": round(random.uniform(0.1, 0.35), 4),
+            "impactDps": round(random.uniform(0.5, 2.8), 4),
             "finalMode": random.choice(["OK", "RISK_HIGH", "IMPACT_HIGH", "SLIPPAGE_HIGH"]),
             "timestamp": time.time(),
-            "engine": "RiskBrain",
-            "slippageBps": round(random.uniform(0.1, 1.5), 4),
+            "reason": "RiskBrain",
+            "slippageDps": round(random.uniform(0.1, 1.5), 4),
             "safetyTriggered": random.choice([True, False])
         }
     ]
@@ -236,18 +237,18 @@ def get_precedents():
             "timestamp": time.time(),
             "final_mode": random.choice(["OK", "RISK_HIGH", "IMPACT_HIGH", "SLIPPAGE_HIGH"]),
             "risk": round(random.uniform(0.1, 0.4), 4),
-            "impact": round(random.uniform(0.1, 2.5), 4),
-            "latency": round(random.uniform(1, 30), 4),
-            "slippage": round(random.uniform(0.1, 1.5), 4)
+            "impact": round(random.uniform(0.5, 2.5), 4),
+            "latency": round(random.uniform(5, 25), 4),
+            "slippage": round(random.uniform(0.1, 2.0), 4)
         }
     ]
 
 @app.get("/risk_matrix")
 def get_risk_matrix():
     risk = round(random.uniform(0.1, 0.4), 4)
-    impact = round(random.uniform(0.1, 2.5), 4)
-    slippage = round(random.uniform(0.1, 1.5), 4)
-    latency = round(random.uniform(1, 30), 4)
+    impact = round(random.uniform(0.5, 3.0), 4)
+    slippage = round(random.uniform(0.1, 2.0), 4)
+    latency = round(random.uniform(5, 25), 4)
 
     return {
         "risk": risk,
@@ -260,3 +261,31 @@ def get_risk_matrix():
             "risk_latency": "CRITICAL" if risk * latency > 5 else "SAFE"
         }
     }
+
+# -----------------------------
+# ALIAS ENDPOINTS (MATCH DASHBOARD NAMES)
+# -----------------------------
+
+@app.get("/federation_visualizer")
+def alias_federation_visualizer():
+    return get_visualizer()
+
+@app.get("/brain_diagnostics")
+def alias_brain_diagnostics():
+    return get_diagnostics()
+
+@app.get("/mode_timeline")
+def alias_mode_timeline():
+    return get_timeline()
+
+@app.get("/safety")
+def alias_safety():
+    return get_safety_triggers()
+
+@app.get("/risk_bubbles")
+def alias_risk_bubbles():
+    return get_bubble_chart()
+
+@app.get("/confidence_heatmap")
+def alias_confidence_heatmap():
+    return get_heatmap()
