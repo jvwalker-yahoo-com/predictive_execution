@@ -23,7 +23,8 @@ app.add_middleware(
 # -----------------------------
 # STATIC DASHBOARD
 # -----------------------------
-app.mount("/", StaticFiles(directory="dashboard", html=True), name="dashboard")
+app.mount("/dashboard", StaticFiles(directory="dashboard", html=True), name="dashboard")
+
 
 # -----------------------------
 # INTERNAL LIVE ENGINES
