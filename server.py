@@ -30,35 +30,31 @@ app.mount("/", StaticFiles(directory="dashboard", html=True), name="dashboard")
 # -----------------------------
 
 def risk_brain():
-    score = round(random.uniform(0.1, 0.4), 4)
     return {
-        "score": score,
+        "score": round(random.uniform(0.05, 0.9), 4),
         "confidence": round(random.uniform(0.7, 0.95), 4),
-        "trend": [round(random.uniform(0.1, 0.4), 4) for _ in range(3)]
+        "trend": [round(random.uniform(0.05, 0.9), 4) for _ in range(3)]
     }
 
 def impact_brain():
-    impact = round(random.uniform(0.1, 2.5), 4)
     return {
-        "impact": impact,
+        "impact": round(random.uniform(0.1, 3.0), 4),
         "confidence": round(random.uniform(0.6, 0.9), 4),
-        "trend": [round(random.uniform(0.1, 2.5), 4) for _ in range(3)]
+        "trend": [round(random.uniform(0.1, 3.0), 4) for _ in range(3)]
     }
 
 def slippage_brain():
-    slippage = round(random.uniform(0.1, 1.5), 4)
     return {
-        "slippage": slippage,
+        "slippage": round(random.uniform(0.05, 2.0), 4),
         "confidence": round(random.uniform(0.5, 0.85), 4),
-        "trend": [round(random.uniform(0.1, 1.5), 4) for _ in range(3)]
+        "trend": [round(random.uniform(0.05, 2.0), 4) for _ in range(3)]
     }
 
 def latency_brain():
-    latency = round(random.uniform(1, 30), 4)
     return {
-        "latency": latency,
+        "latency": round(random.uniform(0.1, 30), 4),
         "confidence": round(random.uniform(0.8, 0.99), 4),
-        "trend": [round(random.uniform(1, 30), 4) for _ in range(3)]
+        "trend": [round(random.uniform(0.1, 30), 4) for _ in range(3)]
     }
 
 def diagnostics_engine():
@@ -79,10 +75,10 @@ def mode_switch_engine(mode: str):
 
 def safety_engine(risk, impact, slippage, latency):
     return {
-        "risk": {"triggered": risk > 0.25, "value": risk},
-        "impact": {"triggered": impact > 1.5, "value": impact},
-        "slippage": {"triggered": slippage > 1.0, "value": slippage},
-        "latency": {"triggered": latency > 15, "value": latency}
+        "risk": {"triggered": random.choice([True, False]), "value": risk},
+        "impact": {"triggered": random.choice([True, False]), "value": impact},
+        "slippage": {"triggered": random.choice([True, False]), "value": slippage},
+        "latency": {"triggered": random.choice([True, False]), "value": latency}
     }
 
 def bubble_chart_engine(risk, impact, slippage, latency):
@@ -93,37 +89,54 @@ def bubble_chart_engine(risk, impact, slippage, latency):
             "slippage": slippage,
             "latency": latency,
             "size": round((risk + impact + slippage) * 4, 2),
-            "color": "red" if slippage > 1.0 else "orange"
+            "color": random.choice(["red", "orange", "yellow"])
         }
     ]
 
 def heatmap_engine():
     return {
         "matrix": [
-            [round(random.uniform(0.7, 0.95), 4) for _ in range(4)]
+            [round(random.uniform(0.5, 0.99), 4) for _ in range(4)]
             for _ in range(3)
         ],
         "labels": ["RiskBrain", "ImpactBrain", "SlippageBrain", "LatencyBrain"]
     }
 
+def latency_spike_engine():
+    return {
+        "spikes": [
+            {
+                "timestamp": time.time(),
+                "latency": round(random.uniform(10, 40), 4),
+                "severity": random.choice(["LOW", "MEDIUM", "HIGH"])
+            }
+        ]
+    }
+
+def slippage_anomaly_engine():
+    return {
+        "anomalies": [
+            {
+                "timestamp": time.time(),
+                "slippage": round(random.uniform(1.0, 3.0), 4),
+                "type": random.choice(["SPIKE", "DROP", "VOLATILITY_SURGE"])
+            }
+        ]
+    }
+
 # -----------------------------
-# LIVE ENDPOINTS (PRIMARY)
+# LIVE ENDPOINTS
 # -----------------------------
 
 @app.get("/state")
 def get_state():
-    risk = round(random.uniform(0.1, 0.4), 4)
-    slippage = round(random.uniform(0.1, 1.5), 4)
-    impact = round(random.uniform(0.1, 2.5), 4)
-    latency = round(random.uniform(1, 30), 4)
-
     return {
         "regime": "NORMAL",
-        "risk": risk,
-        "slippage": slippage,
-        "impact": impact,
-        "latency": latency,
-        "sync": 0,
+        "risk": round(random.uniform(0.05, 0.9), 4),
+        "slippage": round(random.uniform(0.05, 2.0), 4),
+        "impact": round(random.uniform(0.1, 3.0), 4),
+        "latency": round(random.uniform(0.1, 30), 4),
+        "sync": round(random.uniform(0, 10), 4),
         "fill_quality": 1
     }
 
@@ -132,17 +145,14 @@ def get_decision():
     modes = ["OK", "RISK_HIGH", "IMPACT_HIGH", "SLIPPAGE_HIGH"]
     mode = random.choice(modes)
     mode_switch_engine(mode)
-
     return {
         "autonomous": "ON",
         "final_mode": mode,
-        "arbitration": [
-            {
-                "finalMode": mode,
-                "reason": "Model-driven arbitration",
-                "arbitrationNotes": {}
-            }
-        ]
+        "arbitration": {
+            "finalMode": mode,
+            "reason": "Model-driven arbitration",
+            "arbitrationNotes": {}
+        }
     }
 
 @app.get("/federation")
@@ -154,8 +164,7 @@ def get_federation():
 
 @app.get("/arbitration")
 def get_arbitration():
-    modes = ["OK", "RISK_HIGH", "IMPACT_HIGH", "SLIPPAGE_HIGH"]
-    mode = random.choice(modes)
+    mode = random.choice(["OK", "RISK_HIGH", "IMPACT_HIGH", "SLIPPAGE_HIGH"])
     return {
         "final_mode": mode,
         "reason": "model",
@@ -181,35 +190,45 @@ def get_timeline():
 
 @app.get("/safety_triggers")
 def get_safety_triggers():
-    risk = round(random.uniform(0.1, 0.4), 4)
-    impact = round(random.uniform(0.1, 2.5), 4)
-    slippage = round(random.uniform(0.1, 1.5), 4)
-    latency = round(random.uniform(1, 30), 4)
-    return safety_engine(risk, impact, slippage, latency)
+    return safety_engine(
+        round(random.uniform(0.05, 0.9), 4),
+        round(random.uniform(0.1, 3.0), 4),
+        round(random.uniform(0.05, 2.0), 4),
+        round(random.uniform(0.1, 30), 4)
+    )
 
 @app.get("/bubble_chart")
 def get_bubble_chart():
-    risk = round(random.uniform(0.1, 0.4), 4)
-    impact = round(random.uniform(0.1, 2.5), 4)
-    slippage = round(random.uniform(0.1, 1.5), 4)
-    latency = round(random.uniform(1, 30), 4)
-    return bubble_chart_engine(risk, impact, slippage, latency)
+    return bubble_chart_engine(
+        round(random.uniform(0.05, 0.9), 4),
+        round(random.uniform(0.1, 3.0), 4),
+        round(random.uniform(0.05, 2.0), 4),
+        round(random.uniform(0.1, 30), 4)
+    )
 
 @app.get("/heatmap")
 def get_heatmap():
     return heatmap_engine()
 
+@app.get("/latency_spikes")
+def get_latency_spikes():
+    return latency_spike_engine()
+
+@app.get("/slippage_anomalies")
+def get_slippage_anomalies():
+    return slippage_anomaly_engine()
+
 @app.get("/episodes")
 def get_episodes():
     return [
         {
-            "id": "a9e0e17a-71a4-4c17-a795-61a5b",
+            "id": str(random.randint(10000, 99999)),
             "symbol": "CLOUD",
-            "riskScore": round(random.uniform(0.1, 0.3), 4),
+            "riskScore": round(random.uniform(0.05, 0.9), 4),
             "timestamp": time.time(),
-            "impactDps": round(random.uniform(0.5, 2.5), 4),
-            "syncDrift": 0,
-            "autopilotMode": "ON",
+            "impactBps": round(random.uniform(0.1, 3.0), 4),
+            "syncDriftPs": round(random.uniform(0, 10), 4),
+            "autoPilotMode": "ON",
             "twinStatus": "ALIGNED",
             "tags": []
         }
@@ -220,12 +239,12 @@ def get_performance():
     return [
         {
             "id": int(time.time()),
-            "riskScore": round(random.uniform(0.1, 0.35), 4),
-            "impactDps": round(random.uniform(0.5, 2.8), 4),
+            "riskScore": round(random.uniform(0.05, 0.9), 4),
+            "impactBps": round(random.uniform(0.1, 3.0), 4),
             "finalMode": random.choice(["OK", "RISK_HIGH", "IMPACT_HIGH", "SLIPPAGE_HIGH"]),
             "timestamp": time.time(),
-            "reason": "RiskBrain",
-            "slippageDps": round(random.uniform(0.1, 1.5), 4),
+            "name": "RiskBrain",
+            "slippageBps": round(random.uniform(0.05, 2.0), 4),
             "safetyTriggered": random.choice([True, False])
         }
     ]
@@ -236,19 +255,19 @@ def get_precedents():
         {
             "timestamp": time.time(),
             "final_mode": random.choice(["OK", "RISK_HIGH", "IMPACT_HIGH", "SLIPPAGE_HIGH"]),
-            "risk": round(random.uniform(0.1, 0.4), 4),
-            "impact": round(random.uniform(0.5, 2.5), 4),
-            "latency": round(random.uniform(5, 25), 4),
-            "slippage": round(random.uniform(0.1, 2.0), 4)
+            "risk": round(random.uniform(0.05, 0.9), 4),
+            "impact": round(random.uniform(0.1, 3.0), 4),
+            "latency": round(random.uniform(0.1, 30), 4),
+            "slippage": round(random.uniform(0.05, 2.0), 4)
         }
     ]
 
 @app.get("/risk_matrix")
 def get_risk_matrix():
-    risk = round(random.uniform(0.1, 0.4), 4)
-    impact = round(random.uniform(0.5, 3.0), 4)
-    slippage = round(random.uniform(0.1, 2.0), 4)
-    latency = round(random.uniform(5, 25), 4)
+    risk = round(random.uniform(0.05, 0.9), 4)
+    impact = round(random.uniform(0.1, 3.0), 4)
+    slippage = round(random.uniform(0.05, 2.0), 4)
+    latency = round(random.uniform(0.1, 30), 4)
 
     return {
         "risk": risk,
@@ -263,7 +282,7 @@ def get_risk_matrix():
     }
 
 # -----------------------------
-# ALIAS ENDPOINTS (MATCH DASHBOARD NAMES)
+# ALIAS ENDPOINTS (Dashboard compatibility)
 # -----------------------------
 
 @app.get("/federation_visualizer")
@@ -289,3 +308,11 @@ def alias_risk_bubbles():
 @app.get("/confidence_heatmap")
 def alias_confidence_heatmap():
     return get_heatmap()
+
+@app.get("/latency")
+def alias_latency():
+    return get_latency_spikes()
+
+@app.get("/slippage")
+def alias_slippage():
+    return get_slippage_anomalies()
