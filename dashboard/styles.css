@@ -83,7 +83,7 @@ canvas {
   background: #001015;
 }
 
-/* Chart.js global overrides */
+/* Chart.js text forced white */
 .chartjs-render-monitor {
   color: #ffffff !important;
 }
@@ -92,14 +92,12 @@ canvas {
   color: #ffffff !important;
 }
 
-/* Force white axis labels */
 .chart-container text,
 .chart-container tspan {
   fill: #ffffff !important;
   stroke: none !important;
 }
 
-/* Force white legend labels */
 .legend-label {
   color: #ffffff !important;
 }
