@@ -1,175 +1,84 @@
 /* paste dashboard CSS here */
 body {
-  background: #000000;
-  color: #d0eaff;
-  font-family: "Consolas", "Roboto Mono", monospace;
+  background: #000;
+  color: #0ff;
+  font-family: Consolas, monospace;
   margin: 0;
   padding: 20px;
-  overflow: hidden;
 }
 
-/* HUD overlay */
-.hud-overlay {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.hud-line {
-  position: absolute;
-  background: linear-gradient(90deg, #00c8ff00, #00c8ff55, #00c8ff00);
-}
-
-.hud-top {
-  top: 10px;
-  left: 5%;
-  right: 5%;
-  height: 2px;
-}
-
-.hud-bottom {
-  bottom: 10px;
-  left: 5%;
-  right: 5%;
-  height: 2px;
-}
-
-.hud-left {
-  top: 10%;
-  bottom: 10%;
-  left: 10px;
-  width: 2px;
-  background: linear-gradient(180deg, #00c8ff00, #00c8ff55, #00c8ff00);
-}
-
-.hud-right {
-  top: 10%;
-  bottom: 10%;
-  right: 10px;
-  width: 2px;
-  background: linear-gradient(180deg, #00c8ff00, #00c8ff55, #00c8ff00);
-}
-
-.hud-corner {
-  position: absolute;
-  width: 40px;
-  height: 40px;
-  border: 2px solid #00c8ff;
-  border-radius: 6px;
-  box-shadow: 0 0 16px #00c8ff;
-}
-
-.hud-tl { top: 12px; left: 12px; border-right: none; border-bottom: none; }
-.hud-tr { top: 12px; right: 12px; border-left: none; border-bottom: none; }
-.hud-bl { bottom: 12px; left: 12px; border-right: none; border-top: none; }
-.hud-br { bottom: 12px; right: 12px; border-left: none; border-top: none; }
-
-.hud-center-ring {
-  position: absolute;
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  border: 2px dashed #00c8ff;
-  box-shadow: 0 0 22px #00c8ff;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  animation: hudSpin 12s linear infinite;
-}
-
-@keyframes hudSpin {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to   { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-/* Title glow animation */
 .title-glow {
-  color: #00c8ff;
-  text-shadow: 0 0 12px #00c8ff;
-  animation: titlePulse 3s infinite ease-in-out;
-  position: relative;
-  z-index: 1;
+  text-align: center;
+  font-size: 32px;
+  color: #00eaff;
+  text-shadow: 0 0 20px #00eaff;
+  margin-bottom: 20px;
 }
 
-@keyframes titlePulse {
-  0% { text-shadow: 0 0 8px #00c8ff; }
-  50% { text-shadow: 0 0 22px #00eaff; }
-  100% { text-shadow: 0 0 8px #00c8ff; }
-}
-
-.grid.hud-grid {
+.grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
-  position: relative;
-  z-index: 1;
+  gap: 15px;
 }
 
-/* Base tile */
 .tile {
-  background: #0a0f1a;
-  padding: 14px;
-  border-radius: 10px;
-  border: 1px solid #1e2b3d;
-  box-shadow: 0 0 12px #001a33;
-  transition: 0.25s ease;
-}
-
-/* Hover lift */
-.tile.lift:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 0 26px #00aaff;
-}
-
-/* Neon pulse */
-@keyframes pulseGlow {
-  0% { box-shadow: 0 0 10px #003355; }
-  50% { box-shadow: 0 0 22px #009dff; }
-  100% { box-shadow: 0 0 10px #003355; }
-}
-
-.tile.pulse {
-  animation: pulseGlow 3s infinite ease-in-out;
-}
-
-/* Constant glow */
-.tile.glow {
-  box-shadow: 0 0 22px #00aaff;
-  border-color: #00aaff;
+  background: #0a0a0a;
+  border: 2px solid #00eaff;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 0 15px #00eaff55;
 }
 
 .tile h2 {
   margin-top: 0;
-  font-size: 17px;
-  color: #00aaff;
-  text-shadow: 0 0 8px #0088cc;
+  color: #00eaff;
+  text-shadow: 0 0 10px #00eaff;
 }
 
-/* JSON panels */
 pre {
-  background: #000000;
-  padding: 10px;
-  border-radius: 6px;
-  white-space: pre-wrap;
-  font-size: 13px;
-  color: #b0d4ff;
-  border: 1px solid #003355;
+  color: #0ff;
+  font-size: 14px;
+  overflow: auto;
 }
 
-/* Canvas styling */
 canvas {
   width: 100% !important;
   height: 200px !important;
-  background: #000000;
-  border-radius: 6px;
-  border: 1px solid #003355;
-  animation: canvasFlicker 2s infinite ease-in-out;
 }
 
-/* Telemetry flicker */
-@keyframes canvasFlicker {
-  0% { opacity: 0.95; }
-  50% { opacity: 1; }
-  100% { opacity: 0.95; }
+/* Glow tiles */
+.glow {
+  border-color: #ff00ff;
+  box-shadow: 0 0 20px #ff00ff55;
+}
+
+/* Lift tiles */
+.lift {
+  border-color: #ffaa00;
+  box-shadow: 0 0 20px #ffaa0055;
+}
+
+/* Pulse animation */
+.pulse {
+  animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 10px #00eaff55; }
+  50% { box-shadow: 0 0 25px #00eaffaa; }
+  100% { box-shadow: 0 0 10px #00eaff55; }
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00eaff;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: #001015;
 }
