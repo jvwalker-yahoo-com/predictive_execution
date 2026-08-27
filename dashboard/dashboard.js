@@ -16,7 +16,6 @@ let latencyData = [];
 let chartRisk, chartImpact, chartSlippage, chartLatency;
 let chartBubble, chartHeatmap, chartTimeline, chartSafety;
 
-// neon helper
 function neon(color) {
   return {
     borderColor: color,
@@ -26,36 +25,57 @@ function neon(color) {
   };
 }
 
+function commonOptions() {
+  return {
+    animation: false,
+    scales: {
+      x: {
+        ticks: { color: "#ffffff" },
+        grid: { color: "#333333" }
+      },
+      y: {
+        ticks: { color: "#ffffff" },
+        grid: { color: "#333333" }
+      }
+    },
+    plugins: {
+      legend: {
+        labels: { color: "#ffffff" }
+      }
+    }
+  };
+}
+
 function createCharts() {
 
   chartRisk = new Chart(document.getElementById("chart_risk"), {
     type: "line",
     data: { labels: [], datasets: [{ label: "Risk", data: [], ...neon("#ff0044") }] },
-    options: { animation: false }
+    options: commonOptions()
   });
 
   chartImpact = new Chart(document.getElementById("chart_impact"), {
     type: "line",
     data: { labels: [], datasets: [{ label: "Impact", data: [], ...neon("#00aaff") }] },
-    options: { animation: false }
+    options: commonOptions()
   });
 
   chartSlippage = new Chart(document.getElementById("chart_slippage"), {
     type: "line",
     data: { labels: [], datasets: [{ label: "Slippage", data: [], ...neon("#ffaa00") }] },
-    options: { animation: false }
+    options: commonOptions()
   });
 
   chartLatency = new Chart(document.getElementById("chart_latency"), {
     type: "line",
     data: { labels: [], datasets: [{ label: "Latency", data: [], ...neon("#00ff66") }] },
-    options: { animation: false }
+    options: commonOptions()
   });
 
   chartBubble = new Chart(document.getElementById("chart_bubble"), {
     type: "bubble",
     data: { datasets: [{ label: "Bubble", data: [], backgroundColor: "#ff0044aa" }] },
-    options: { animation: false }
+    options: commonOptions()
   });
 
   chartHeatmap = new Chart(document.getElementById("chart_heatmap"), {
@@ -68,13 +88,13 @@ function createCharts() {
         backgroundColor: Array(12).fill("#ffaa00")
       }]
     },
-    options: { animation: false }
+    options: commonOptions()
   });
 
   chartTimeline = new Chart(document.getElementById("chart_timeline"), {
     type: "line",
     data: { labels: [], datasets: [{ label: "Mode", data: [], ...neon("#bb88ff") }] },
-    options: { animation: false }
+    options: commonOptions()
   });
 
   chartSafety = new Chart(document.getElementById("chart_safety"), {
@@ -86,7 +106,14 @@ function createCharts() {
         backgroundColor: ["#ff0044", "#00ff66"]
       }]
     },
-    options: { animation: false }
+    options: {
+      animation: false,
+      plugins: {
+        legend: {
+          labels: { color: "#ffffff" }
+        }
+      }
+    }
   });
 }
 
@@ -179,7 +206,6 @@ async function refreshAll() {
     chartSafety.update();
   }
 
-  // SAFE NEW FUNCTIONALITY
   load("anomaly_detector", "panel_anomaly");
   load("mode_events", "panel_events");
   load("quadrant", "panel_quadrant");
