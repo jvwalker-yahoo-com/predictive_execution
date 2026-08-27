@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <title>Predictive Execution Dashboard</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -17,6 +18,11 @@
   <div class="tile"><h2>FEDERATION SUMMARY</h2><pre id="panel_federation"></pre></div>
   <div class="tile"><h2>ARBITRATION</h2><pre id="panel_arbitration"></pre></div>
 
+  <div class="tile"><h2>RISK TREND</h2><canvas id="chart_risk"></canvas></div>
+  <div class="tile"><h2>IMPACT TREND</h2><canvas id="chart_impact"></canvas></div>
+  <div class="tile"><h2>SLIPPAGE TREND</h2><canvas id="chart_slippage"></canvas></div>
+  <div class="tile"><h2>LATENCY TREND</h2><canvas id="chart_latency"></canvas></div>
+
   <div class="tile"><h2>FEDERATION VISUALIZER</h2><pre id="panel_visualizer"></pre></div>
   <div class="tile"><h2>BRAIN DIAGNOSTICS</h2><pre id="panel_diagnostics"></pre></div>
   <div class="tile"><h2>RECENT EPISODES</h2><pre id="panel_episodes"></pre></div>
@@ -26,11 +32,6 @@
   <div class="tile"><h2>MODE SWITCH TIMELINE</h2><pre id="panel_timeline"></pre></div>
   <div class="tile"><h2>SAFETY TRIGGERS</h2><pre id="panel_safety"></pre></div>
   <div class="tile"><h2>LIVE RISK MATRIX</h2><pre id="panel_risk_matrix"></pre></div>
-
-  <div class="tile"><h2>RISK BUBBLE CHART</h2><pre id="panel_bubbles"></pre></div>
-  <div class="tile"><h2>CONFIDENCE HEATMAP</h2><pre id="panel_heatmap"></pre></div>
-  <div class="tile"><h2>LATENCY SPIKES</h2><pre id="panel_latency_spikes"></pre></div>
-  <div class="tile"><h2>SLIPPAGE ANOMALIES</h2><pre id="panel_slippage_anomalies"></pre></div>
 
 </div>
 
