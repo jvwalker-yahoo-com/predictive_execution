@@ -26,9 +26,7 @@ let safetyTriggered = false;
 let chartRisk, chartImpact, chartSlippage, chartLatency;
 let chartBubble, chartHeatmap, chartTimeline, chartSafety;
 
-// -----------------------------
-// CREATE CHARTS
-// -----------------------------
+// Neon helper
 function neon(color) {
   return {
     borderColor: color,
@@ -38,36 +36,39 @@ function neon(color) {
   };
 }
 
+// -----------------------------
+// CREATE CHARTS
+// -----------------------------
 function createCharts() {
 
   chartRisk = new Chart(document.getElementById("chart_risk"), {
     type: "line",
     data: { labels: [], datasets: [{ label: "Risk", data: [], ...neon("#ff0044") }] },
-    options: { animation: false }
+    options: { animation: { duration: 600 } }
   });
 
   chartImpact = new Chart(document.getElementById("chart_impact"), {
     type: "line",
     data: { labels: [], datasets: [{ label: "Impact", data: [], ...neon("#00aaff") }] },
-    options: { animation: false }
+    options: { animation: { duration: 600 } }
   });
 
   chartSlippage = new Chart(document.getElementById("chart_slippage"), {
     type: "line",
     data: { labels: [], datasets: [{ label: "Slippage", data: [], ...neon("#ffaa00") }] },
-    options: { animation: false }
+    options: { animation: { duration: 600 } }
   });
 
   chartLatency = new Chart(document.getElementById("chart_latency"), {
     type: "line",
     data: { labels: [], datasets: [{ label: "Latency", data: [], ...neon("#00ff66") }] },
-    options: { animation: false }
+    options: { animation: { duration: 600 } }
   });
 
   chartBubble = new Chart(document.getElementById("chart_bubble"), {
     type: "bubble",
     data: { datasets: [{ label: "Bubble", data: [bubblePoint], backgroundColor: "#ff0044aa" }] },
-    options: { animation: false }
+    options: { animation: { duration: 600 } }
   });
 
   chartHeatmap = new Chart(document.getElementById("chart_heatmap"), {
@@ -80,13 +81,13 @@ function createCharts() {
         backgroundColor: Array(12).fill("#ffaa00")
       }]
     },
-    options: { animation: false }
+    options: { animation: { duration: 600 } }
   });
 
   chartTimeline = new Chart(document.getElementById("chart_timeline"), {
     type: "line",
     data: { labels: [], datasets: [{ label: "Mode", data: [], ...neon("#bb88ff") }] },
-    options: { animation: false }
+    options: { animation: { duration: 600 } }
   });
 
   chartSafety = new Chart(document.getElementById("chart_safety"), {
@@ -98,7 +99,7 @@ function createCharts() {
         backgroundColor: ["#ff0044", "#00ff66"]
       }]
     },
-    options: { animation: false }
+    options: { animation: { duration: 600 } }
   });
 }
 
