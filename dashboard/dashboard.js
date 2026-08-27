@@ -7,26 +7,19 @@
 // =========================================================
 const BASE = "";
 
-// -----------------------------
-// CHART BUFFERS
-// -----------------------------
 let riskData = [];
 let impactData = [];
 let slippageData = [];
 let latencyData = [];
 
-let modeTimeline = [];
 let bubblePoint = { x: 0, y: 0, r: 10 };
 let heatmapMatrix = [[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+let modeTimeline = [];
 let safetyTriggered = false;
 
-// -----------------------------
-// CHART OBJECTS
-// -----------------------------
 let chartRisk, chartImpact, chartSlippage, chartLatency;
 let chartBubble, chartHeatmap, chartTimeline, chartSafety;
 
-// Neon helper
 function neon(color) {
   return {
     borderColor: color,
@@ -36,9 +29,6 @@ function neon(color) {
   };
 }
 
-// -----------------------------
-// CREATE CHARTS
-// -----------------------------
 function createCharts() {
 
   chartRisk = new Chart(document.getElementById("chart_risk"), {
@@ -103,9 +93,6 @@ function createCharts() {
   });
 }
 
-// -----------------------------
-// UPDATE CHARTS
-// -----------------------------
 function updateCharts(state, bubbles, heatmap, timeline, safety) {
 
   riskData.push(state.risk);
@@ -164,9 +151,6 @@ function updateCharts(state, bubbles, heatmap, timeline, safety) {
   chartSafety.update();
 }
 
-// -----------------------------
-// LOAD PANELS + CHART DATA
-// -----------------------------
 async function load(endpoint, targetId) {
   try {
     const res = await fetch(`${BASE}/${endpoint}`);
@@ -179,9 +163,6 @@ async function load(endpoint, targetId) {
   }
 }
 
-// -----------------------------
-// REFRESH ALL
-// -----------------------------
 async function refreshAll() {
 
   const state = await load("state", "panel_state");
@@ -207,9 +188,6 @@ async function refreshAll() {
   load("slippage_anomalies", "panel_slippage_anomalies");
 }
 
-// -----------------------------
-// STARTUP
-// -----------------------------
 createCharts();
 refreshAll();
 setInterval(refreshAll, 2000);
