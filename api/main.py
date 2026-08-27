@@ -4,44 +4,41 @@
 # force render to rebuild backend
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 import random
-import uvicorn
+import time
 
 app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# ---------------------------------------------------------
+# CORE STATE ENDPOINTS
+# ---------------------------------------------------------
 
-def r():
-    return round(random.uniform(0, 1), 4)
+@app.get("/")
+def root():
+    return {"status": "ok"}
 
 @app.get("/state")
 def state():
     return {
         "regime": "NORMAL",
-        "risk": r(),
-        "slippage": r(),
-        "impact": r() * 2,
-        "latency": r() * 20,
-        "sync": r() * 5,
+        "risk": round(random.random(), 4),
+        "slippage": round(random.random(), 4),
+        "impact": round(random.random(), 4),
+        "latency": round(random.uniform(1, 5), 4),
+        "events": round(random.uniform(0, 2), 4),
         "fill_quality": 1
     }
 
 @app.get("/decision")
 def decision():
+    mode = random.choice(["OK", "WARN", "SLIPPAGE_HIGH", "IMPACT_HIGH"])
     return {
         "autonomous": "ON",
-        "final_mode": random.choice(["IMPACT_HIGH", "RISK_HIGH", "NORMAL"]),
-        "arbitration": {
-            "final_mode": random.choice(["IMPACT_HIGH", "RISK_HIGH", "NORMAL"]),
-            "reason": "Model-driven arbitration",
-            "arbitrationNotes": {}
-        }
+        "main_mode": mode,
+        "arbitrationId": "",
+        "finalMode": mode,
+        "reason": "Model-driven arbitration",
+        "arbitrationNotes": {}
     }
 
 @app.get("/federation")
@@ -53,92 +50,85 @@ def federation():
 
 @app.get("/arbitration")
 def arbitration():
+    mode = random.choice(["OK", "WARN", "CRITICAL"])
     return {
-        "final_mode": random.choice(["RISK_HIGH", "IMPACT_HIGH", "NORMAL"]),
-        "reason": "model1",
+        "final_mode": mode,
+        "reason": "model",
         "arbitrationNotes": {}
     }
+
+# ---------------------------------------------------------
+# VISUALIZER ENDPOINTS
+# ---------------------------------------------------------
 
 @app.get("/bubble_chart")
 def bubble_chart():
     return [{
-        "risk": r(),
-        "impact": r(),
+        "risk": round(random.random(), 3),
+        "impact": round(random.random(), 3),
         "size": random.randint(10, 40)
     }]
 
 @app.get("/heatmap")
 def heatmap():
-    return {
-        "matrix": [
-            [r(), r(), r(), r()],
-            [r(), r(), r(), r()],
-            [r(), r(), r(), r()]
-        ]
-    }
+    matrix = [[round(random.random(), 3) for _ in range(3)] for _ in range(4)]
+    return {"matrix": matrix}
 
 @app.get("/timeline")
 def timeline():
-    return [{"mode": random.choice(["OK", "WARN", "FAIL"])} for _ in range(20)]
+    modes = ["OK", "WARN", "CRITICAL"]
+    return [{"mode": random.choice(modes)} for _ in range(12)]
 
 @app.get("/safety_triggers")
 def safety_triggers():
     return {
-        "risk": {"triggered": r() > 0.85},
-        "impact": {"triggered": r() > 0.85},
-        "slippage": {"triggered": r() > 0.85},
-        "latency": {"triggered": r() > 0.85}
+        "risk": {"triggered": random.random() > 0.85},
+        "impact": {"triggered": random.random() > 0.85},
+        "slippage": {"triggered": random.random() > 0.85},
+        "latency": {"triggered": random.random() > 0.85}
     }
 
-# -------------------------
-# NEW UPGRADED ENDPOINTS
-# -------------------------
+# ---------------------------------------------------------
+# MISSING COCKPIT ENDPOINTS (NOW FIXED)
+# ---------------------------------------------------------
 
 @app.get("/anomaly_detector")
 def anomaly_detector():
     return {
-        "risk_spike": r() > 0.92,
-        "latency_spike": r() > 0.90,
-        "impact_jump": r() > 0.88,
-        "slippage_jump": r() > 0.87
+        "risk_spike": random.random() > 0.8,
+        "latency_spike": random.random() > 0.85,
+        "impact_jump": random.random() > 0.9,
+        "slippage_jump": random.random() > 0.9
     }
 
 @app.get("/mode_events")
 def mode_events():
-    return [
-        {
-            "event": random.choice(["MODE_SWITCH", "FAILSAFE", "REVERT", "NORMALIZE"]),
-            "value": random.choice(["RISK_HIGH", "IMPACT_HIGH", "NORMAL"])
-        }
-        for _ in range(10)
-    ]
+    return {
+        "events": [
+            {"mode": "OK", "timestamp": time.time()},
+            {"mode": "WARN", "timestamp": time.time() - 5},
+            {"mode": "CRITICAL", "timestamp": time.time() - 10}
+        ]
+    }
 
 @app.get("/quadrant")
 def quadrant():
-    risk = r()
-    impact = r()
     return {
-        "risk": risk,
-        "impact": impact,
-        "quadrant": (
-            "HIGH-HIGH" if risk > 0.5 and impact > 0.5 else
-            "HIGH-LOW" if risk > 0.5 else
-            "LOW-HIGH" if impact > 0.5 else
-            "LOW-LOW"
-        )
+        "risk": round(random.random(), 3),
+        "impact": round(random.random(), 3),
+        "quadrant": random.choice(["LOW", "MEDIUM", "HIGH", "CRITICAL"])
     }
 
 @app.get("/heartbeat")
 def heartbeat():
-    return {"alive": random.choice([True, True, True, False])}
+    return {
+        "alive": True,
+        "timestamp": time.time()
+    }
 
 @app.get("/sync_drift")
 def sync_drift():
-    return {"drift": round(random.uniform(-2.0, 2.0), 3)}
-
-# -------------------------
-# SERVER START
-# -------------------------
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    return {
+        "drift_ms": random.randint(0, 250),
+        "status": "OK" if random.random() < 0.8 else "DRIFTING"
+    }
