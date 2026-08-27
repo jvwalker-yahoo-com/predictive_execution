@@ -16,6 +16,7 @@ let latencyData = [];
 let chartRisk, chartImpact, chartSlippage, chartLatency;
 let chartBubble, chartHeatmap, chartTimeline, chartSafety;
 
+// neon helper
 function neon(color) {
   return {
     borderColor: color,
@@ -177,6 +178,13 @@ async function refreshAll() {
     chartSafety.data.datasets[0].data = triggered ? [1, 0] : [0, 1];
     chartSafety.update();
   }
+
+  // SAFE NEW FUNCTIONALITY
+  load("anomaly_detector", "panel_anomaly");
+  load("mode_events", "panel_events");
+  load("quadrant", "panel_quadrant");
+  load("heartbeat", "panel_heartbeat");
+  load("sync_drift", "panel_drift");
 }
 
 createCharts();
