@@ -1,7 +1,6 @@
 # =========================================================
 # Predictive Execution API — Full System (Federation + Modes + History)
 # =========================================================
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import random
@@ -16,18 +15,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def rand():
-    return round(random.uniform(0.0, 1.0), 4)
+def r(): return round(random.uniform(0, 1), 4)
 
 @app.get("/state")
 def state():
     return {
         "regime": "NORMAL",
-        "risk": rand(),
-        "slippage": rand(),
-        "impact": rand() * 2,
-        "latency": rand() * 20,
-        "sync": rand() * 5,
+        "risk": r(),
+        "slippage": r(),
+        "impact": r() * 2,
+        "latency": r() * 20,
+        "sync": r() * 5,
         "fill_quality": 1
     }
 
@@ -61,8 +59,8 @@ def arbitration():
 @app.get("/bubble_chart")
 def bubble():
     return [{
-        "risk": rand(),
-        "impact": rand(),
+        "risk": r(),
+        "impact": r(),
         "size": random.randint(10, 40)
     }]
 
@@ -70,9 +68,9 @@ def bubble():
 def heatmap():
     return {
         "matrix": [
-            [rand(), rand(), rand(), rand()],
-            [rand(), rand(), rand(), rand()],
-            [rand(), rand(), rand(), rand()]
+            [r(), r(), r(), r()],
+            [r(), r(), r(), r()],
+            [r(), r(), r(), r()]
         ]
     }
 
@@ -83,10 +81,10 @@ def timeline():
 @app.get("/safety_triggers")
 def safety():
     return {
-        "risk": {"triggered": rand() > 0.85},
-        "impact": {"triggered": rand() > 0.85},
-        "slippage": {"triggered": rand() > 0.85},
-        "latency": {"triggered": rand() > 0.85}
+        "risk": {"triggered": r() > 0.85},
+        "impact": {"triggered": r() > 0.85},
+        "slippage": {"triggered": r() > 0.85},
+        "latency": {"triggered": r() > 0.85}
     }
 
 # -----------------------------
@@ -96,10 +94,10 @@ def safety():
 @app.get("/anomaly_detector")
 def anomaly_detector():
     return {
-        "risk_spike": rand() > 0.92,
-        "latency_spike": rand() > 0.90,
-        "impact_jump": rand() > 0.88,
-        "slippage_jump": rand() > 0.87
+        "risk_spike": r() > 0.92,
+        "latency_spike": r() > 0.90,
+        "impact_jump": r() > 0.88,
+        "slippage_jump": r() > 0.87
     }
 
 @app.get("/mode_events")
@@ -112,15 +110,15 @@ def mode_events():
 
 @app.get("/quadrant")
 def quadrant():
-    r = rand()
-    i = rand()
+    risk = r()
+    impact = r()
     return {
-        "risk": r,
-        "impact": i,
+        "risk": risk,
+        "impact": impact,
         "quadrant": (
-            "HIGH-HIGH" if r > 0.5 and i > 0.5 else
-            "HIGH-LOW" if r > 0.5 else
-            "LOW-HIGH" if i > 0.5 else
+            "HIGH-HIGH" if risk > 0.5 and impact > 0.5 else
+            "HIGH-LOW" if risk > 0.5 else
+            "LOW-HIGH" if impact > 0.5 else
             "LOW-LOW"
         )
     }
