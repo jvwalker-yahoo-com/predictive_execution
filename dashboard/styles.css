@@ -5,6 +5,82 @@ body {
   font-family: "Consolas", "Roboto Mono", monospace;
   margin: 0;
   padding: 20px;
+  overflow: hidden;
+}
+
+/* HUD overlay */
+.hud-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hud-line {
+  position: absolute;
+  background: linear-gradient(90deg, #00c8ff00, #00c8ff55, #00c8ff00);
+}
+
+.hud-top {
+  top: 10px;
+  left: 5%;
+  right: 5%;
+  height: 2px;
+}
+
+.hud-bottom {
+  bottom: 10px;
+  left: 5%;
+  right: 5%;
+  height: 2px;
+}
+
+.hud-left {
+  top: 10%;
+  bottom: 10%;
+  left: 10px;
+  width: 2px;
+  background: linear-gradient(180deg, #00c8ff00, #00c8ff55, #00c8ff00);
+}
+
+.hud-right {
+  top: 10%;
+  bottom: 10%;
+  right: 10px;
+  width: 2px;
+  background: linear-gradient(180deg, #00c8ff00, #00c8ff55, #00c8ff00);
+}
+
+.hud-corner {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border: 2px solid #00c8ff;
+  border-radius: 6px;
+  box-shadow: 0 0 16px #00c8ff;
+}
+
+.hud-tl { top: 12px; left: 12px; border-right: none; border-bottom: none; }
+.hud-tr { top: 12px; right: 12px; border-left: none; border-bottom: none; }
+.hud-bl { bottom: 12px; left: 12px; border-right: none; border-top: none; }
+.hud-br { bottom: 12px; right: 12px; border-left: none; border-top: none; }
+
+.hud-center-ring {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 2px dashed #00c8ff;
+  box-shadow: 0 0 22px #00c8ff;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: hudSpin 12s linear infinite;
+}
+
+@keyframes hudSpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 /* Title glow animation */
@@ -12,6 +88,8 @@ body {
   color: #00c8ff;
   text-shadow: 0 0 12px #00c8ff;
   animation: titlePulse 3s infinite ease-in-out;
+  position: relative;
+  z-index: 1;
 }
 
 @keyframes titlePulse {
@@ -20,10 +98,12 @@ body {
   100% { text-shadow: 0 0 8px #00c8ff; }
 }
 
-.grid {
+.grid.hud-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 18px;
+  position: relative;
+  z-index: 1;
 }
 
 /* Base tile */
