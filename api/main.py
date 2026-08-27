@@ -15,7 +15,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def r(): 
+def r():
     return round(random.uniform(0, 1), 4)
 
 @app.get("/state")
