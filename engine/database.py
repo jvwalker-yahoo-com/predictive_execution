@@ -1,12 +1,23 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+# Load DATABASE_URL from Render environment
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Fallback to local SQLite when running on your PC
-if not DATABASE_URL:
-    DATABASE_URL = "sqlite:///./local.db"
+# Create SQLAlchemy engine
+engine = create_engine(
+    DATABASE_URL,
+    echo=False
+)
 
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+# Session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Base class for models
+Base = declarative_base()
+
+# Initialize tables
+def init_db():
+    Base.metadata.create_all(bind=engine)
+
