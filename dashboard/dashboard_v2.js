@@ -49,37 +49,29 @@ function commonOptions() {
 
 function createCharts() {
 
-  // -----------------------------------------
-  // COMMENTED OUT — YOUR TEST
-  // -----------------------------------------
+  chartRisk = new Chart(document.getElementById("chart_risk"), {
+    type: "line",
+    data: { labels: [], datasets: [{ label: "Risk", data: [], ...neon("#ff0044") }] },
+    options: commonOptions()
+  });
 
-  // chartRisk = new Chart(document.getElementById("chart_risk"), {
-  //   type: "line",
-  //   data: { labels: [], datasets: [{ label: "Risk", data: [], ...neon("#ff0044") }] },
-  //   options: commonOptions()
-  // });
+  chartImpact = new Chart(document.getElementById("chart_impact"), {
+    type: "line",
+    data: { labels: [], datasets: [{ label: "Impact", data: [], ...neon("#00aaff") }] },
+    options: commonOptions()
+  });
 
-  // chartImpact = new Chart(document.getElementById("chart_impact"), {
-  //   type: "line",
-  //   data: { labels: [], datasets: [{ label: "Impact", data: [], ...neon("#00aaff") }] },
-  //   options: commonOptions()
-  // });
+  chartSlippage = new Chart(document.getElementById("chart_slippage"), {
+    type: "line",
+    data: { labels: [], datasets: [{ label: "Slippage", data: [], ...neon("#ffaa00") }] },
+    options: commonOptions()
+  });
 
-  // chartSlippage = new Chart(document.getElementById("chart_slippage"), {
-  //   type: "line",
-  //   data: { labels: [], datasets: [{ label: "Slippage", data: [], ...neon("#ffaa00") }] },
-  //   options: commonOptions()
-  // });
-
-  // chartLatency = new Chart(document.getElementById("chart_latency"), {
-  //   type: "line",
-  //   data: { labels: [], datasets: [{ label: "Latency", data: [], ...neon("#00ff66") }] },
-  //   options: commonOptions()
-  // });
-
-  // -----------------------------------------
-  // THESE STILL RUN (for your test)
-  // -----------------------------------------
+  chartLatency = new Chart(document.getElementById("chart_latency"), {
+    type: "line",
+    data: { labels: [], datasets: [{ label: "Latency", data: [], ...neon("#00ff66") }] },
+    options: commonOptions()
+  });
 
   chartBubble = new Chart(document.getElementById("chart_bubble"), {
     type: "bubble",
@@ -150,41 +142,33 @@ async function refreshAll() {
   const timeline = await fetch(`${BASE}/timeline`).then(r => r.json()).catch(() => null);
   const safety = await fetch(`${BASE}/safety_triggers`).then(r => r.json()).catch(() => null);
 
-  // -----------------------------------------
-  // COMMENTED OUT — YOUR TEST
-  // -----------------------------------------
+  if (state) {
+    riskData.push(state.risk);
+    impactData.push(state.impact);
+    slippageData.push(state.slippage);
+    latencyData.push(state.latency);
 
-  // if (state) {
-  //   riskData.push(state.risk);
-  //   impactData.push(state.impact);
-  //   slippageData.push(state.slippage);
-  //   latencyData.push(state.latency);
+    if (riskData.length > 50) riskData.shift();
+    if (impactData.length > 50) impactData.shift();
+    if (slippageData.length > 50) slippageData.shift();
+    if (latencyData.length > 50) latencyData.shift();
 
-  //   if (riskData.length > 50) riskData.shift();
-  //   if (impactData.length > 50) impactData.shift();
-  //   if (slippageData.length > 50) slippageData.shift();
-  //   if (latencyData.length > 50) latencyData.shift();
+    chartRisk.data.labels = riskData.map((_, i) => i);
+    chartRisk.data.datasets[0].data = riskData;
+    chartRisk.update();
 
-  //   chartRisk.data.labels = riskData.map((_, i) => i);
-  //   chartRisk.data.datasets[0].data = riskData;
-  //   chartRisk.update();
+    chartImpact.data.labels = impactData.map((_, i) => i);
+    chartImpact.data.datasets[0].data = impactData;
+    chartImpact.update();
 
-  //   chartImpact.data.labels = impactData.map((_, i) => i);
-  //   chartImpact.data.datasets[0].data = impactData;
-  //   chartImpact.update();
+    chartSlippage.data.labels = slippageData.map((_, i) => i);
+    chartSlippage.data.datasets[0].data = slippageData;
+    chartSlippage.update();
 
-  //   chartSlippage.data.labels = slippageData.map((_, i) => i);
-  //   chartSlippage.data.datasets[0].data = slippageData;
-  //   chartSlippage.update();
-
-  //   chartLatency.data.labels = latencyData.map((_, i) => i);
-  //   chartLatency.data.datasets[0].data = latencyData;
-  //   chartLatency.update();
-  // }
-
-  // -----------------------------------------
-  // THESE STILL RUN (for your test)
-  // -----------------------------------------
+    chartLatency.data.labels = latencyData.map((_, i) => i);
+    chartLatency.data.datasets[0].data = latencyData;
+    chartLatency.update();
+  }
 
   if (bubbles && bubbles.length > 0) {
     const b = bubbles[0];
