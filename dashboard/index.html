@@ -3,64 +3,39 @@
 <html>
 <head>
     <title>Predictive Execution Dashboard</title>
-    <style>
-        body {
-            background: #111;
-            color: #eee;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-        }
-        .tile {
-            background: #222;
-            padding: 14px;
-            border-radius: 6px;
-            border: 1px solid #333;
-        }
-        pre {
-            background: #000;
-            padding: 12px;
-            border-radius: 6px;
-            white-space: pre-wrap;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
 <h1>Predictive Execution Dashboard</h1>
 
-<div class="grid">
+<div class="dashboard-grid">
 
-    <div class="tile"><h3>STATE</h3><pre id="panel_state"></pre></div>
-    <div class="tile"><h3>DECISION</h3><pre id="panel_decision"></pre></div>
-    <div class="tile"><h3>FEDERATION SUMMARY</h3><pre id="panel_federation"></pre></div>
-    <div class="tile"><h3>ARBITRATION</h3><pre id="panel_arbitration"></pre></div>
+    <div class="tile"><h2>STATE</h2><pre id="panel_state"></pre></div>
+    <div class="tile"><h2>DECISION</h2><pre id="panel_decision"></pre></div>
+    <div class="tile"><h2>FEDERATION SUMMARY</h2><pre id="panel_federation"></pre></div>
+    <div class="tile"><h2>ARBITRATION</h2><pre id="panel_arbitration"></pre></div>
 
-    <div class="tile"><h3>FEDERATION VISUALIZER</h3><pre id="panel_federation_visualizer"></pre></div>
-    <div class="tile"><h3>BRAIN DIAGNOSTICS</h3><pre id="panel_brain_diagnostics"></pre></div>
-    <div class="tile"><h3>RECENT EPISODES</h3><pre id="panel_episodes"></pre></div>
-    <div class="tile"><h3>PERFORMANCE SAMPLES</h3><pre id="panel_performance"></pre></div>
+    <div class="tile"><h2>FEDERATION VISUALIZER</h2><pre id="panel_federation_visualizer"></pre></div>
+    <div class="tile"><h2>BRAIN DIAGNOSTICS</h2><pre id="panel_brain_diagnostics"></pre></div>
+    <div class="tile"><h2>RECENT EPISODES</h2><pre id="panel_episodes"></pre></div>
+    <div class="tile"><h2>PERFORMANCE SAMPLES</h2><pre id="panel_performance"></pre></div>
 
-    <div class="tile"><h3>ARBITRATION PRECEDENTS</h3><pre id="panel_precedents"></pre></div>
-    <div class="tile"><h3>MODE SWITCH TIMELINE</h3><pre id="panel_mode_timeline"></pre></div>
-    <div class="tile"><h3>MODE SWITCH ANALYTICS</h3><pre id="panel_mode_analytics"></pre></div>
-    <div class="tile"><h3>SAFETY TRIGGERS</h3><pre id="panel_safety"></pre></div>
+    <div class="tile"><h2>ARBITRATION PRECEDENTS</h2><pre id="panel_precedents"></pre></div>
+    <div class="tile"><h2>MODE SWITCH TIMELINE</h2><pre id="panel_mode_timeline"></pre></div>
+    <div class="tile"><h2>MODE SWITCH ANALYTICS</h2><pre id="panel_mode_analytics"></pre></div>
+    <div class="tile"><h2>SAFETY TRIGGERS</h2><pre id="panel_safety"></pre></div>
 
-    <div class="tile"><h3>BRAIN CONFIDENCE HEATMAP</h3><pre id="panel_confidence_heatmap"></pre></div>
-    <div class="tile"><h3>SLIPPAGE & IMPACT TRENDS</h3><pre id="panel_slippage_impact"></pre></div>
-    <div class="tile"><h3>BRAIN PERFORMANCE</h3><pre id="panel_brain_performance"></pre></div>
-    <div class="tile"><h3>MODE STABILITY</h3><pre id="panel_mode_stability"></pre></div>
+    <div class="tile"><h2>BRAIN CONFIDENCE HEATMAP</h2><pre id="panel_confidence_heatmap"></pre></div>
+    <div class="tile"><h2>SLIPPAGE & IMPACT TRENDS</h2><pre id="panel_slippage_impact"></pre></div>
+    <div class="tile"><h2>BRAIN PERFORMANCE</h2><pre id="panel_brain_performance"></pre></div>
+    <div class="tile"><h2>MODE STABILITY</h2><pre id="panel_mode_stability"></pre></div>
 
-    <div class="tile"><h3>LIVE RISK MATRIX</h3><pre id="panel_risk_matrix"></pre></div>
-    <div class="tile"><h3>RISK BUBBLE CHART</h3><pre id="panel_risk_bubbles"></pre></div>
-    <div class="tile"><h3>LATENCY SPIKES</h3><pre id="panel_latency_spikes"></pre></div>
-    <div class="tile"><h3>SLIPPAGE ANOMALIES</h3><pre id="panel_slippage_anomalies"></pre></div>
+    <div class="tile"><h2>LIVE RISK MATRIX</h2><pre id="panel_risk_matrix"></pre></div>
+    <div class="tile"><h2>RISK BUBBLE CHART</h2><pre id="panel_risk_bubbles"></pre></div>
+    <div class="tile"><h2>LATENCY SPIKES</h2><pre id="panel_latency_spikes"></pre></div>
+    <div class="tile"><h2>SLIPPAGE ANOMALIES</h2><pre id="panel_slippage_anomalies"></pre></div>
 
 </div>
 
