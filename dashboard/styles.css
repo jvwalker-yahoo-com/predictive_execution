@@ -7,12 +7,17 @@ body {
   padding: 20px;
 }
 
-h1 {
-  text-align: center;
-  margin-bottom: 25px;
-  font-size: 32px;
+/* Title glow animation */
+.title-glow {
   color: #00c8ff;
   text-shadow: 0 0 12px #00c8ff;
+  animation: titlePulse 3s infinite ease-in-out;
+}
+
+@keyframes titlePulse {
+  0% { text-shadow: 0 0 8px #00c8ff; }
+  50% { text-shadow: 0 0 22px #00eaff; }
+  100% { text-shadow: 0 0 8px #00c8ff; }
 }
 
 .grid {
@@ -21,18 +26,37 @@ h1 {
   gap: 18px;
 }
 
+/* Base tile */
 .tile {
   background: #0a0f1a;
   padding: 14px;
   border-radius: 10px;
   border: 1px solid #1e2b3d;
   box-shadow: 0 0 12px #001a33;
-  transition: 0.2s ease;
+  transition: 0.25s ease;
 }
 
-.tile:hover {
-  box-shadow: 0 0 22px #009dff;
-  border-color: #009dff;
+/* Hover lift */
+.tile.lift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 0 26px #00aaff;
+}
+
+/* Neon pulse */
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 10px #003355; }
+  50% { box-shadow: 0 0 22px #009dff; }
+  100% { box-shadow: 0 0 10px #003355; }
+}
+
+.tile.pulse {
+  animation: pulseGlow 3s infinite ease-in-out;
+}
+
+/* Constant glow */
+.tile.glow {
+  box-shadow: 0 0 22px #00aaff;
+  border-color: #00aaff;
 }
 
 .tile h2 {
@@ -42,6 +66,7 @@ h1 {
   text-shadow: 0 0 8px #0088cc;
 }
 
+/* JSON panels */
 pre {
   background: #000000;
   padding: 10px;
@@ -52,10 +77,19 @@ pre {
   border: 1px solid #003355;
 }
 
+/* Canvas styling */
 canvas {
   width: 100% !important;
   height: 200px !important;
   background: #000000;
   border-radius: 6px;
   border: 1px solid #003355;
+  animation: canvasFlicker 2s infinite ease-in-out;
+}
+
+/* Telemetry flicker */
+@keyframes canvasFlicker {
+  0% { opacity: 0.95; }
+  50% { opacity: 1; }
+  100% { opacity: 0.95; }
 }
