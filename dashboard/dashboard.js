@@ -2,153 +2,161 @@
 // Predictive Execution Dashboard — Updated Full File
 // Works with Render backend and real-model API
 // Predictive Execution Dashboard — Correct Version
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-import random
+// =========================================================
+// Predictive Execution Dashboard – Full JS (Validated)
+// =========================================================
 
-app = FastAPI()
+const BASE = "https://predictive-execution-1.onrender.com";
 
-# ------------------------------
-# CORE DATA GENERATORS
-# ------------------------------
-
-def get_state():
-    return {
-        "mode": random.choice(["IDLE", "ACTIVE", "LEARNING"]),
-        "confidence": round(random.uniform(0.1, 0.99), 4),
-        "latency": round(random.uniform(0.1, 5.0), 4)
+// -----------------------------
+// Helper
+// -----------------------------
+async function load(endpoint, targetId) {
+    try {
+        const res = await fetch(`${BASE}/${endpoint}`);
+        const data = await res.json();
+        document.getElementById(targetId).innerText = JSON.stringify(data, null, 2);
+    } catch (e) {
+        document.getElementById(targetId).innerText = "ERROR";
     }
+}
 
-def get_decision():
-    return {
-        "action": random.choice(["BUY", "SELL", "HOLD"]),
-        "strength": round(random.uniform(0.1, 1.0), 4)
-    }
+// -----------------------------
+// STATE
+// -----------------------------
+document.getElementById("btn_state").onclick = () => {
+    load("state", "panel_state");
+};
 
-def get_episodes():
-    return [{"episode": i, "reward": round(random.uniform(-1, 1), 4)} for i in range(10)]
+// -----------------------------
+// DECISION
+// -----------------------------
+document.getElementById("btn_decision").onclick = () => {
+    load("decision", "panel_decision");
+};
 
-def get_performance():
-    return [{"step": i, "value": round(random.uniform(0, 1), 4)} for i in range(20)]
+// -----------------------------
+// FEDERATION SUMMARY
+// -----------------------------
+document.getElementById("btn_federation").onclick = () => {
+    load("federation", "panel_federation");
+};
 
-def get_federation():
-    return {
-        "nodes": 5,
-        "active": random.randint(1, 5),
-        "health": round(random.uniform(0.1, 1.0), 4)
-    }
+// -----------------------------
+// ARBITRATION
+// -----------------------------
+document.getElementById("btn_arbitration").onclick = () => {
+    load("arbitration", "panel_arbitration");
+};
 
-def get_arbitration():
-    return {
-        "conflicts": random.randint(0, 5),
-        "resolved": random.randint(0, 5)
-    }
+// -----------------------------
+// FEDERATION VISUALIZER
+// -----------------------------
+document.getElementById("btn_federation_visualizer").onclick = () => {
+    load("federation_visualizer", "panel_federation_visualizer");
+};
 
-def get_precedents():
-    return [{"case": i, "result": random.choice(["PASS", "FAIL"])} for i in range(5)]
+// -----------------------------
+// BRAIN DIAGNOSTICS
+// -----------------------------
+document.getElementById("btn_brain_diagnostics").onclick = () => {
+    load("brain_diagnostics", "panel_brain_diagnostics");
+};
 
-def get_timeline():
-    return [{"t": i, "mode": random.choice(["IDLE", "ACTIVE", "LEARNING"])} for i in range(15)]
+// -----------------------------
+// RECENT EPISODES
+// -----------------------------
+document.getElementById("btn_episodes").onclick = () => {
+    load("episodes", "panel_episodes");
+};
 
-def get_visualizer():
-    return {"graph": "federation_visualizer", "nodes": random.randint(3, 10)}
+// -----------------------------
+// PERFORMANCE SAMPLES
+// -----------------------------
+document.getElementById("btn_performance").onclick = () => {
+    load("performance", "panel_performance");
+};
 
-def get_diagnostics():
-    return {"cpu": random.randint(1, 100), "ram": random.randint(1, 100)}
+// -----------------------------
+// ARBITRATION PRECEDENTS
+// -----------------------------
+document.getElementById("btn_precedents").onclick = () => {
+    load("precedents", "panel_precedents");
+};
 
-def get_heatmap():
-    return {"heatmap": [[round(random.uniform(0, 1), 3) for _ in range(5)] for _ in range(5)]}
+// -----------------------------
+// MODE SWITCH TIMELINE
+// -----------------------------
+document.getElementById("btn_mode_timeline").onclick = () => {
+    load("mode_timeline", "panel_mode_timeline");
+};
 
-def get_bubble_chart():
-    return [{"risk": round(random.uniform(0, 1), 3), "impact": round(random.uniform(0, 1), 3)} for _ in range(10)]
+// -----------------------------
+// MODE SWITCH ANALYTICS
+// -----------------------------
+document.getElementById("btn_mode_analytics").onclick = () => {
+    load("mode_timeline", "panel_mode_analytics");
+};
 
-def get_safety_triggers():
-    return {"triggers": random.randint(0, 3)}
+// -----------------------------
+// SAFETY TRIGGERS
+// -----------------------------
+document.getElementById("btn_safety").onclick = () => {
+    load("safety", "panel_safety");
+};
 
-def get_latency_spikes():
-    return [{"t": i, "latency": round(random.uniform(0.1, 5.0), 3)} for i in range(20)]
+// -----------------------------
+// BRAIN CONFIDENCE HEATMAP
+// -----------------------------
+document.getElementById("btn_confidence_heatmap").onclick = () => {
+    load("confidence_heatmap", "panel_confidence_heatmap");
+};
 
-def get_slippage_anomalies():
-    return [{"t": i, "slippage": round(random.uniform(0, 1), 3)} for i in range(20)]
+// -----------------------------
+// SLIPPAGE & IMPACT TRENDS
+// -----------------------------
+document.getElementById("btn_slippage_impact").onclick = () => {
+    load("bubble_chart", "panel_slippage_impact");
+};
 
-# ------------------------------
-# API ENDPOINTS
-# ------------------------------
+// -----------------------------
+// BRAIN PERFORMANCE
+// -----------------------------
+document.getElementById("btn_brain_performance").onclick = () => {
+    load("visualizer", "panel_brain_performance");
+};
 
-@app.get("/state")
-def api_state():
-    return get_state()
+// -----------------------------
+// MODE STABILITY
+// -----------------------------
+document.getElementById("btn_mode_stability").onclick = () => {
+    load("mode_timeline", "panel_mode_stability");
+};
 
-@app.get("/decision")
-def api_decision():
-    return get_decision()
+// -----------------------------
+// LIVE RISK MATRIX
+// -----------------------------
+document.getElementById("btn_risk_matrix").onclick = () => {
+    load("risk_matrix", "panel_risk_matrix");
+};
 
-@app.get("/episodes")
-def api_episodes():
-    return get_episodes()
+// -----------------------------
+// RISK BUBBLE CHART
+// -----------------------------
+document.getElementById("btn_risk_bubbles").onclick = () => {
+    load("risk_bubbles", "panel_risk_bubbles");
+};
 
-@app.get("/performance")
-def api_performance():
-    return get_performance()
+// -----------------------------
+// LATENCY SPIKES
+// -----------------------------
+document.getElementById("btn_latency_spikes").onclick = () => {
+    load("latency", "panel_latency_spikes");
+};
 
-@app.get("/federation")
-def api_federation():
-    return get_federation()
-
-@app.get("/arbitration")
-def api_arbitration():
-    return get_arbitration()
-
-@app.get("/precedents")
-def api_precedents():
-    return get_precedents()
-
-@app.get("/timeline")
-def api_timeline():
-    return get_timeline()
-
-# ------------------------------
-# ALIAS ENDPOINTS (Dashboard compatibility)
-# ------------------------------
-
-@app.get("/mode_history")
-def alias_mode_history():
-    return get_timeline()
-
-@app.get("/predict")
-def alias_predict():
-    return get_decision()
-
-@app.get("/federation_visualizer")
-def alias_federation_visualizer():
-    return get_visualizer()
-
-@app.get("/brain_diagnostics")
-def alias_brain_diagnostics():
-    return get_diagnostics()
-
-@app.get("/confidence_heatmap")
-def alias_confidence_heatmap():
-    return get_heatmap()
-
-@app.get("/risk_bubbles")
-def alias_risk_bubbles():
-    return get_bubble_chart()
-
-@app.get("/safety")
-def alias_safety():
-    return get_safety_triggers()
-
-@app.get("/latency_spikes")
-def alias_latency_spikes():
-    return get_latency_spikes()
-
-@app.get("/slippage_anomalies")
-def alias_slippage_anomalies():
-    return get_slippage_anomalies()
-
-# ------------------------------
-# DASHBOARD STATIC FILES
-# ------------------------------
-
-app.mount("/dashboard", StaticFiles(directory="dashboard", html=True), name="dashboard")
+// -----------------------------
+// SLIPPAGE ANOMALIES
+// -----------------------------
+document.getElementById("btn_slippage_anomalies").onclick = () => {
+    load("slippage", "panel_slippage_anomalies");
+};
