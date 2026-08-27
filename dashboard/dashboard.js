@@ -15,12 +15,22 @@ let impactData = [];
 let slippageData = [];
 let latencyData = [];
 
-let chartRisk, chartImpact, chartSlippage, chartLatency;
+let modeTimeline = [];
+let bubblePoint = { x: 0, y: 0, r: 10 };
+let heatmapMatrix = [[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+let safetyValue = 0;
 
 // -----------------------------
-// CHART INITIALIZATION
+// CHART OBJECTS
+// -----------------------------
+let chartRisk, chartImpact, chartSlippage, chartLatency;
+let chartBubble, chartHeatmap, chartTimeline, chartSafety;
+
+// -----------------------------
+// CREATE CHARTS
 // -----------------------------
 function createCharts() {
+
   chartRisk = new Chart(document.getElementById("chart_risk"), {
     type: "line",
     data: { labels: [], datasets: [{ label: "Risk", data: [], borderColor: "#ff4444" }] },
@@ -44,14 +54,59 @@ function createCharts() {
     data: { labels: [], datasets: [{ label: "Latency", data: [], borderColor: "#66ff66" }] },
     options: { animation: false }
   });
+
+  chartBubble = new Chart(document.getElementById("chart_bubble"), {
+    type: "bubble",
+    data: { datasets: [{ label: "Bubble", data: [bubblePoint], backgroundColor: "#ff6666" }] },
+    options: { animation: false }
+  });
+
+  chartHeatmap = new Chart(document.getElementById("chart_heatmap"), {
+    type: "matrix",
+    data: {
+      datasets: [{
+        label: "Heatmap",
+        data: heatmapMatrix.flat().map((v, i) => ({
+          x: i % 4,
+          y: Math.floor(i / 4),
+          v
+        })),
+        backgroundColor(ctx) {
+          const value = ctx.dataset.data[ctx.dataIndex].v;
+          return `rgba(255, ${Math.floor(255 - value * 255)}, 0, 0.8)`;
+        },
+        width: ({chart}) => chart.chartArea.width / 4,
+        height: ({chart}) => chart.chartArea.height / 3
+      }]
+    },
+    options: { animation: false }
+  });
+
+  chartTimeline = new Chart(document.getElementById("chart_timeline"), {
+    type: "line",
+    data: { labels: [], datasets: [{ label: "Mode", data: [], borderColor: "#8888ff" }] },
+    options: { animation: false }
+  });
+
+  chartSafety = new Chart(document.getElementById("chart_safety"), {
+    type: "doughnut",
+    data: {
+      labels: ["Triggered", "Safe"],
+      datasets: [{
+        data: [0, 1],
+        backgroundColor: ["#ff4444", "#44ff44"]
+      }]
+    },
+    options: { animation: false }
+  });
 }
 
 // -----------------------------
 // UPDATE CHARTS
 // -----------------------------
-function updateCharts(state) {
-  const timestamp = new Date().toLocaleTimeString();
+function updateCharts(state, bubbles, heatmap, timeline, safety) {
 
+  // Trend charts
   riskData.push(state.risk);
   impactData.push(state.impact);
   slippageData.push(state.slippage);
@@ -77,29 +132,65 @@ function updateCharts(state) {
   chartLatency.data.labels = latencyData.map((_, i) => i);
   chartLatency.data.datasets[0].data = latencyData;
   chartLatency.update();
+
+  // Bubble chart
+  bubblePoint = {
+    x: bubbles[0].risk,
+    y: bubbles[0].impact,
+    r: bubbles[0].size
+  };
+  chartBubble.data.datasets[0].data = [bubblePoint];
+  chartBubble.update();
+
+  // Heatmap
+  heatmapMatrix = heatmap.matrix;
+  chartHeatmap.data.datasets[0].data = heatmapMatrix.flat().map((v, i) => ({
+    x: i % 4,
+    y: Math.floor(i / 4),
+    v
+  }));
+  chartHeatmap.update();
+
+  // Timeline
+  modeTimeline = timeline.map(t => t.mode === "OK" ? 0 : 1);
+  chartTimeline.data.labels = modeTimeline.map((_, i) => i);
+  chartTimeline.data.datasets[0].data = modeTimeline;
+  chartTimeline.update();
+
+  // Safety gauge
+  const triggered = safety.risk.triggered || safety.impact.triggered || safety.slippage.triggered || safety.latency.triggered;
+  chartSafety.data.datasets[0].data = triggered ? [1, 0] : [0, 1];
+  chartSafety.update();
 }
 
 // -----------------------------
-// LOAD JSON PANELS
+// LOAD PANELS + CHART DATA
 // -----------------------------
 async function load(endpoint, targetId) {
   try {
     const res = await fetch(`${BASE}/${endpoint}`);
     const data = await res.json();
     document.getElementById(targetId).innerText = JSON.stringify(data, null, 2);
-
-    if (endpoint === "state") updateCharts(data);
-
-  } catch (e) {
+    return data;
+  } catch {
     document.getElementById(targetId).innerText = "ERROR";
+    return null;
   }
 }
 
 // -----------------------------
-// REFRESH ALL PANELS
+// REFRESH ALL
 // -----------------------------
-function refreshAll() {
-  load("state", "panel_state");
+async function refreshAll() {
+
+  const state = await load("state", "panel_state");
+  const bubbles = await load("bubble_chart", "panel_bubbles");
+  const heatmap = await load("heatmap", "panel_heatmap");
+  const timeline = await load("timeline", "panel_timeline");
+  const safety = await load("safety_triggers", "panel_safety");
+
+  updateCharts(state, bubbles, heatmap, timeline, safety);
+
   load("decision", "panel_decision");
   load("federation", "panel_federation");
   load("arbitration", "panel_arbitration");
@@ -110,12 +201,7 @@ function refreshAll() {
   load("performance", "panel_performance");
 
   load("precedents", "panel_precedents");
-  load("timeline", "panel_timeline");
-  load("safety_triggers", "panel_safety");
   load("risk_matrix", "panel_risk_matrix");
-
-  load("bubble_chart", "panel_bubbles");
-  load("heatmap", "panel_heatmap");
   load("latency_spikes", "panel_latency_spikes");
   load("slippage_anomalies", "panel_slippage_anomalies");
 }
