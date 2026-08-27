@@ -18,7 +18,7 @@ let latencyData = [];
 let modeTimeline = [];
 let bubblePoint = { x: 0, y: 0, r: 10 };
 let heatmapMatrix = [[0,0,0,0],[0,0,0,0],[0,0,0,0]];
-let safetyValue = 0;
+let safetyTriggered = false;
 
 // -----------------------------
 // CHART OBJECTS
@@ -62,21 +62,13 @@ function createCharts() {
   });
 
   chartHeatmap = new Chart(document.getElementById("chart_heatmap"), {
-    type: "matrix",
+    type: "bar",
     data: {
+      labels: ["R1","R2","R3","R4","R5","R6","R7","R8","R9","R10","R11","R12"],
       datasets: [{
-        label: "Heatmap",
-        data: heatmapMatrix.flat().map((v, i) => ({
-          x: i % 4,
-          y: Math.floor(i / 4),
-          v
-        })),
-        backgroundColor(ctx) {
-          const value = ctx.dataset.data[ctx.dataIndex].v;
-          return `rgba(255, ${Math.floor(255 - value * 255)}, 0, 0.8)`;
-        },
-        width: ({chart}) => chart.chartArea.width / 4,
-        height: ({chart}) => chart.chartArea.height / 3
+        label: "Confidence",
+        data: Array(12).fill(0),
+        backgroundColor: Array(12).fill("#ffaa00")
       }]
     },
     options: { animation: false }
@@ -142,23 +134,27 @@ function updateCharts(state, bubbles, heatmap, timeline, safety) {
   chartBubble.data.datasets[0].data = [bubblePoint];
   chartBubble.update();
 
-  // Heatmap
-  heatmapMatrix = heatmap.matrix;
-  chartHeatmap.data.datasets[0].data = heatmapMatrix.flat().map((v, i) => ({
-    x: i % 4,
-    y: Math.floor(i / 4),
-    v
-  }));
+  // Heatmap (flatten matrix)
+  const flat = heatmap.matrix.flat();
+  chartHeatmap.data.datasets[0].data = flat;
+  chartHeatmap.data.datasets[0].backgroundColor = flat.map(v =>
+    `rgba(${Math.floor(v * 255)}, ${Math.floor(255 - v * 255)}, 0, 0.8)`
+  );
   chartHeatmap.update();
 
   // Timeline
-  modeTimeline = timeline.map(t => t.mode === "OK" ? 0 : 1);
-  chartTimeline.data.labels = modeTimeline.map((_, i) => i);
-  chartTimeline.data.datasets[0].data = modeTimeline;
+  const timelineValues = timeline.map(t => t.mode === "OK" ? 0 : 1);
+  chartTimeline.data.labels = timelineValues.map((_, i) => i);
+  chartTimeline.data.datasets[0].data = timelineValues;
   chartTimeline.update();
 
   // Safety gauge
-  const triggered = safety.risk.triggered || safety.impact.triggered || safety.slippage.triggered || safety.latency.triggered;
+  const triggered =
+    safety.risk.triggered ||
+    safety.impact.triggered ||
+    safety.slippage.triggered ||
+    safety.latency.triggered;
+
   chartSafety.data.datasets[0].data = triggered ? [1, 0] : [0, 1];
   chartSafety.update();
 }
