@@ -1,28 +1,42 @@
 /* paste dashboard CSS here */
 body {
-    background: #111;
-    color: #eee;
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
+  background: #0d0d0d;
+  color: #e0e0e0;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 26px;
 }
 
 .grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
 }
 
 .tile {
-    background: #222;
-    padding: 14px;
-    border-radius: 6px;
-    border: 1px solid #333;
+  background: #1a1a1a;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #333;
+  box-shadow: 0 0 6px #000;
+}
+
+.tile h2 {
+  margin-top: 0;
+  font-size: 16px;
+  color: #66ccff;
 }
 
 pre {
-    background: #000;
-    padding: 12px;
-    border-radius: 6px;
-    white-space: pre-wrap;
+  background: #000;
+  padding: 10px;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  font-size: 12px;
 }
