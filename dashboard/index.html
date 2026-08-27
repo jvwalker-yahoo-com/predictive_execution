@@ -1,119 +1,111 @@
 <!-- paste dashboard HTML here -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>Predictive Execution Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: #111;
+            color: #eee;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        .btn {
+            background: #222;
+            padding: 18px;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid #333;
+        }
+        .btn:hover {
+            background: #333;
+        }
+        pre {
+            background: #000;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Predictive Execution Dashboard</h1>
 
-    <div class="grid">
+<h1>Predictive Execution Dashboard</h1>
 
-        <div class="panel">
-            <h2>State</h2>
-            <pre id="state"></pre>
-        </div>
+<div class="grid">
 
-        <div class="panel">
-            <h2>Decision</h2>
-            <pre id="decision"></pre>
-        </div>
+    <div class="btn" id="btn_state">STATE</div>
+    <pre id="panel_state"></pre>
 
-        <div class="panel">
-            <h2>Federation Summary</h2>
-            <pre id="federation"></pre>
-        </div>
+    <div class="btn" id="btn_decision">DECISION</div>
+    <pre id="panel_decision"></pre>
 
-        <div class="panel">
-            <h2>Arbitration</h2>
-            <pre id="arbitration"></pre>
-        </div>
+    <div class="btn" id="btn_federation">FEDERATION SUMMARY</div>
+    <pre id="panel_federation"></pre>
 
-        <div class="panel">
-            <h2>Federation Visualizer</h2>
-            <pre id="federationVisualizer"></pre>
-        </div>
+    <div class="btn" id="btn_arbitration">ARBITRATION</div>
+    <pre id="panel_arbitration"></pre>
 
-        <div class="panel">
-            <h2>Brain Diagnostics</h2>
-            <pre id="diagnostics"></pre>
-        </div>
+    <div class="btn" id="btn_federation_visualizer">FEDERATION VISUALIZER</div>
+    <pre id="panel_federation_visualizer"></pre>
 
-        <div class="panel">
-            <h2>Recent Episodes</h2>
-            <pre id="episodes"></pre>
-        </div>
+    <div class="btn" id="btn_brain_diagnostics">BRAIN DIAGNOSTICS</div>
+    <pre id="panel_brain_diagnostics"></pre>
 
-        <div class="panel">
-            <h2>Performance Samples</h2>
-            <pre id="performance"></pre>
-        </div>
+    <div class="btn" id="btn_episodes">RECENT EPISODES</div>
+    <pre id="panel_episodes"></pre>
 
-        <div class="panel">
-            <h2>Arbitration Precedents</h2>
-            <pre id="precedents"></pre>
-        </div>
+    <div class="btn" id="btn_performance">PERFORMANCE SAMPLES</div>
+    <pre id="panel_performance"></pre>
 
-        <div class="panel">
-            <h2>Mode Switch Timeline</h2>
-            <pre id="modeTimeline"></pre>
-        </div>
+    <div class="btn" id="btn_precedents">ARBITRATION PRECEDENTS</div>
+    <pre id="panel_precedents"></pre>
 
-        <div class="panel">
-            <h2>Mode Switch Analytics</h2>
-            <pre id="modeAnalytics"></pre>
-        </div>
+    <div class="btn" id="btn_mode_timeline">MODE SWITCH TIMELINE</div>
+    <pre id="panel_mode_timeline"></pre>
 
-        <div class="panel">
-            <h2>Safety Triggers</h2>
-            <pre id="safetyTriggers"></pre>
-        </div>
+    <div class="btn" id="btn_mode_analytics">MODE SWITCH ANALYTICS</div>
+    <pre id="panel_mode_analytics"></pre>
 
-        <div class="panel">
-            <h2>Brain Confidence Heatmap</h2>
-            <pre id="confidenceHeatmap"></pre>
-        </div>
+    <div class="btn" id="btn_safety">SAFETY TRIGGERS</div>
+    <pre id="panel_safety"></pre>
 
-        <div class="panel">
-            <h2>Slippage & Impact Trends</h2>
-            <pre id="trendCharts"></pre>
-        </div>
+    <div class="btn" id="btn_confidence_heatmap">BRAIN CONFIDENCE HEATMAP</div>
+    <pre id="panel_confidence_heatmap"></pre>
 
-        <div class="panel">
-            <h2>Brain Performance</h2>
-            <pre id="brainPerformance"></pre>
-        </div>
+    <div class="btn" id="btn_slippage_impact">SLIPPAGE & IMPACT TRENDS</div>
+    <pre id="panel_slippage_impact"></pre>
 
-        <div class="panel">
-            <h2>Mode Stability</h2>
-            <pre id="modeStability"></pre>
-        </div>
+    <div class="btn" id="btn_brain_performance">BRAIN PERFORMANCE</div>
+    <pre id="panel_brain_performance"></pre>
 
-        <div class="panel">
-            <h2>Live Risk Matrix</h2>
-            <pre id="riskMatrix"></pre>
-        </div>
+    <div class="btn" id="btn_mode_stability">MODE STABILITY</div>
+    <pre id="panel_mode_stability"></pre>
 
-        <div class="panel">
-            <h2>Risk Bubble Chart</h2>
-            <pre id="riskBubble"></pre>
-        </div>
+    <div class="btn" id="btn_risk_matrix">LIVE RISK MATRIX</div>
+    <pre id="panel_risk_matrix"></pre>
 
-        <div class="panel">
-            <h2>Latency Spikes</h2>
-            <pre id="latencySpikes"></pre>
-        </div>
+    <div class="btn" id="btn_risk_bubbles">RISK BUBBLE CHART</div>
+    <pre id="panel_risk_bubbles"></pre>
 
-        <div class="panel">
-            <h2>Slippage Anomalies</h2>
-            <pre id="slippageAnomalies"></pre>
-        </div>
+    <div class="btn" id="btn_latency_spikes">LATENCY SPIKES</div>
+    <pre id="panel_latency_spikes"></pre>
 
-    </div>
+    <div class="btn" id="btn_slippage_anomalies">SLIPPAGE ANOMALIES</div>
+    <pre id="panel_slippage_anomalies"></pre>
 
-    <script src="dashboard.js"></script>
+</div>
+
+<script src="dashboard.js"></script>
+
 </body>
 </html>
