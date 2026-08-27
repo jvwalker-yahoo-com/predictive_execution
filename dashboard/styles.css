@@ -46,19 +46,16 @@ canvas {
   height: 200px !important;
 }
 
-/* Glow tiles */
 .glow {
   border-color: #ff00ff;
   box-shadow: 0 0 20px #ff00ff55;
 }
 
-/* Lift tiles */
 .lift {
   border-color: #ffaa00;
   box-shadow: 0 0 20px #ffaa0055;
 }
 
-/* Pulse animation */
 .pulse {
   animation: pulseGlow 2s infinite;
 }
@@ -69,7 +66,6 @@ canvas {
   100% { box-shadow: 0 0 10px #00eaff55; }
 }
 
-/* Scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -81,23 +77,4 @@ canvas {
 
 ::-webkit-scrollbar-track {
   background: #001015;
-}
-
-/* Chart.js text forced white */
-.chartjs-render-monitor {
-  color: #ffffff !important;
-}
-
-canvas {
-  color: #ffffff !important;
-}
-
-.chart-container text,
-.chart-container tspan {
-  fill: #ffffff !important;
-  stroke: none !important;
-}
-
-.legend-label {
-  color: #ffffff !important;
 }
