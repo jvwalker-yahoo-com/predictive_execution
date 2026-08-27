@@ -7,150 +7,6 @@
 // =========================================================
 const BASE = "";
 
-let riskData = [];
-let impactData = [];
-let slippageData = [];
-let latencyData = [];
-
-let bubblePoint = { x: 0, y: 0, r: 10 };
-let heatmapMatrix = [[0,0,0,0],[0,0,0,0],[0,0,0,0]];
-let modeTimeline = [];
-let safetyTriggered = false;
-
-let chartRisk, chartImpact, chartSlippage, chartLatency;
-let chartBubble, chartHeatmap, chartTimeline, chartSafety;
-
-function neon(color) {
-  return {
-    borderColor: color,
-    backgroundColor: color + "33",
-    pointBackgroundColor: color,
-    pointBorderColor: color
-  };
-}
-
-function createCharts() {
-
-  chartRisk = new Chart(document.getElementById("chart_risk"), {
-    type: "line",
-    data: { labels: [], datasets: [{ label: "Risk", data: [], ...neon("#ff0044") }] },
-    options: { animation: { duration: 600 } }
-  });
-
-  chartImpact = new Chart(document.getElementById("chart_impact"), {
-    type: "line",
-    data: { labels: [], datasets: [{ label: "Impact", data: [], ...neon("#00aaff") }] },
-    options: { animation: { duration: 600 } }
-  });
-
-  chartSlippage = new Chart(document.getElementById("chart_slippage"), {
-    type: "line",
-    data: { labels: [], datasets: [{ label: "Slippage", data: [], ...neon("#ffaa00") }] },
-    options: { animation: { duration: 600 } }
-  });
-
-  chartLatency = new Chart(document.getElementById("chart_latency"), {
-    type: "line",
-    data: { labels: [], datasets: [{ label: "Latency", data: [], ...neon("#00ff66") }] },
-    options: { animation: { duration: 600 } }
-  });
-
-  chartBubble = new Chart(document.getElementById("chart_bubble"), {
-    type: "bubble",
-    data: { datasets: [{ label: "Bubble", data: [bubblePoint], backgroundColor: "#ff0044aa" }] },
-    options: { animation: { duration: 600 } }
-  });
-
-  chartHeatmap = new Chart(document.getElementById("chart_heatmap"), {
-    type: "bar",
-    data: {
-      labels: Array.from({ length: 12 }, (_, i) => `C${i+1}`),
-      datasets: [{
-        label: "Confidence",
-        data: Array(12).fill(0),
-        backgroundColor: Array(12).fill("#ffaa00")
-      }]
-    },
-    options: { animation: { duration: 600 } }
-  });
-
-  chartTimeline = new Chart(document.getElementById("chart_timeline"), {
-    type: "line",
-    data: { labels: [], datasets: [{ label: "Mode", data: [], ...neon("#bb88ff") }] },
-    options: { animation: { duration: 600 } }
-  });
-
-  chartSafety = new Chart(document.getElementById("chart_safety"), {
-    type: "doughnut",
-    data: {
-      labels: ["Triggered", "Safe"],
-      datasets: [{
-        data: [0, 1],
-        backgroundColor: ["#ff0044", "#00ff66"]
-      }]
-    },
-    options: { animation: { duration: 600 } }
-  });
-}
-
-function updateCharts(state, bubbles, heatmap, timeline, safety) {
-
-  riskData.push(state.risk);
-  impactData.push(state.impact);
-  slippageData.push(state.slippage);
-  latencyData.push(state.latency);
-
-  if (riskData.length > 20) riskData.shift();
-  if (impactData.length > 20) impactData.shift();
-  if (slippageData.length > 20) slippageData.shift();
-  if (latencyData.length > 20) latencyData.shift();
-
-  chartRisk.data.labels = riskData.map((_, i) => i);
-  chartRisk.data.datasets[0].data = riskData;
-  chartRisk.update();
-
-  chartImpact.data.labels = impactData.map((_, i) => i);
-  chartImpact.data.datasets[0].data = impactData;
-  chartImpact.update();
-
-  chartSlippage.data.labels = slippageData.map((_, i) => i);
-  chartSlippage.data.datasets[0].data = slippageData;
-  chartSlippage.update();
-
-  chartLatency.data.labels = latencyData.map((_, i) => i);
-  chartLatency.data.datasets[0].data = latencyData;
-  chartLatency.update();
-
-  bubblePoint = {
-    x: bubbles[0].risk,
-    y: bubbles[0].impact,
-    r: bubbles[0].size
-  };
-  chartBubble.data.datasets[0].data = [bubblePoint];
-  chartBubble.update();
-
-  const flat = heatmap.matrix.flat();
-  chartHeatmap.data.datasets[0].data = flat;
-  chartHeatmap.data.datasets[0].backgroundColor = flat.map(v =>
-    `rgba(${Math.floor(v * 255)}, ${Math.floor(255 - v * 255)}, 0, 0.8)`
-  );
-  chartHeatmap.update();
-
-  const timelineValues = timeline.map(t => t.mode === "OK" ? 0 : 1);
-  chartTimeline.data.labels = timelineValues.map((_, i) => i);
-  chartTimeline.data.datasets[0].data = timelineValues;
-  chartTimeline.update();
-
-  const triggered =
-    safety.risk.triggered ||
-    safety.impact.triggered ||
-    safety.slippage.triggered ||
-    safety.latency.triggered;
-
-  chartSafety.data.datasets[0].data = triggered ? [1, 0] : [0, 1];
-  chartSafety.update();
-}
-
 async function load(endpoint, targetId) {
   try {
     const res = await fetch(`${BASE}/${endpoint}`);
@@ -165,17 +21,21 @@ async function load(endpoint, targetId) {
 
 async function refreshAll() {
 
-  const state = await load("state", "panel_state");
-  const bubbles = await load("bubble_chart", "panel_bubbles");
-  const heatmap = await load("heatmap", "panel_heatmap");
-  const timeline = await load("timeline", "panel_timeline");
-  const safety = await load("safety_triggers", "panel_safety");
-
-  updateCharts(state, bubbles, heatmap, timeline, safety);
-
+  load("state", "panel_state");
   load("decision", "panel_decision");
   load("federation", "panel_federation");
   load("arbitration", "panel_arbitration");
+
+  load("bubble_chart", "panel_bubbles");
+  load("heatmap", "panel_heatmap");
+  load("timeline", "panel_timeline");
+  load("safety_triggers", "panel_safety");
+
+  load("anomaly_detector", "panel_anomaly");
+  load("mode_events", "panel_events");
+  load("quadrant", "panel_quadrant");
+  load("heartbeat", "panel_heartbeat");
+  load("sync_drift", "panel_drift");
 
   load("visualizer", "panel_visualizer");
   load("diagnostics", "panel_diagnostics");
@@ -188,6 +48,5 @@ async function refreshAll() {
   load("slippage_anomalies", "panel_slippage_anomalies");
 }
 
-createCharts();
 refreshAll();
 setInterval(refreshAll, 2000);
