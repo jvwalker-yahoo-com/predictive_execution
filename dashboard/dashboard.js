@@ -29,35 +29,44 @@ let chartBubble, chartHeatmap, chartTimeline, chartSafety;
 // -----------------------------
 // CREATE CHARTS
 // -----------------------------
+function neon(color) {
+  return {
+    borderColor: color,
+    backgroundColor: color + "33",
+    pointBackgroundColor: color,
+    pointBorderColor: color
+  };
+}
+
 function createCharts() {
 
   chartRisk = new Chart(document.getElementById("chart_risk"), {
     type: "line",
-    data: { labels: [], datasets: [{ label: "Risk", data: [], borderColor: "#ff4444" }] },
+    data: { labels: [], datasets: [{ label: "Risk", data: [], ...neon("#ff0044") }] },
     options: { animation: false }
   });
 
   chartImpact = new Chart(document.getElementById("chart_impact"), {
     type: "line",
-    data: { labels: [], datasets: [{ label: "Impact", data: [], borderColor: "#44aaff" }] },
+    data: { labels: [], datasets: [{ label: "Impact", data: [], ...neon("#00aaff") }] },
     options: { animation: false }
   });
 
   chartSlippage = new Chart(document.getElementById("chart_slippage"), {
     type: "line",
-    data: { labels: [], datasets: [{ label: "Slippage", data: [], borderColor: "#ffaa44" }] },
+    data: { labels: [], datasets: [{ label: "Slippage", data: [], ...neon("#ffaa00") }] },
     options: { animation: false }
   });
 
   chartLatency = new Chart(document.getElementById("chart_latency"), {
     type: "line",
-    data: { labels: [], datasets: [{ label: "Latency", data: [], borderColor: "#66ff66" }] },
+    data: { labels: [], datasets: [{ label: "Latency", data: [], ...neon("#00ff66") }] },
     options: { animation: false }
   });
 
   chartBubble = new Chart(document.getElementById("chart_bubble"), {
     type: "bubble",
-    data: { datasets: [{ label: "Bubble", data: [bubblePoint], backgroundColor: "#ff6666" }] },
+    data: { datasets: [{ label: "Bubble", data: [bubblePoint], backgroundColor: "#ff0044aa" }] },
     options: { animation: false }
   });
 
@@ -76,7 +85,7 @@ function createCharts() {
 
   chartTimeline = new Chart(document.getElementById("chart_timeline"), {
     type: "line",
-    data: { labels: [], datasets: [{ label: "Mode", data: [], borderColor: "#8888ff" }] },
+    data: { labels: [], datasets: [{ label: "Mode", data: [], ...neon("#bb88ff") }] },
     options: { animation: false }
   });
 
@@ -86,7 +95,7 @@ function createCharts() {
       labels: ["Triggered", "Safe"],
       datasets: [{
         data: [0, 1],
-        backgroundColor: ["#ff4444", "#44ff44"]
+        backgroundColor: ["#ff0044", "#00ff66"]
       }]
     },
     options: { animation: false }
@@ -98,7 +107,6 @@ function createCharts() {
 // -----------------------------
 function updateCharts(state, bubbles, heatmap, timeline, safety) {
 
-  // Trend charts
   riskData.push(state.risk);
   impactData.push(state.impact);
   slippageData.push(state.slippage);
@@ -125,7 +133,6 @@ function updateCharts(state, bubbles, heatmap, timeline, safety) {
   chartLatency.data.datasets[0].data = latencyData;
   chartLatency.update();
 
-  // Bubble chart
   bubblePoint = {
     x: bubbles[0].risk,
     y: bubbles[0].impact,
@@ -134,7 +141,6 @@ function updateCharts(state, bubbles, heatmap, timeline, safety) {
   chartBubble.data.datasets[0].data = [bubblePoint];
   chartBubble.update();
 
-  // Heatmap
   const flat = heatmap.matrix.flat();
   chartHeatmap.data.datasets[0].data = flat;
   chartHeatmap.data.datasets[0].backgroundColor = flat.map(v =>
@@ -142,13 +148,11 @@ function updateCharts(state, bubbles, heatmap, timeline, safety) {
   );
   chartHeatmap.update();
 
-  // Timeline
   const timelineValues = timeline.map(t => t.mode === "OK" ? 0 : 1);
   chartTimeline.data.labels = timelineValues.map((_, i) => i);
   chartTimeline.data.datasets[0].data = timelineValues;
   chartTimeline.update();
 
-  // Safety gauge
   const triggered =
     safety.risk.triggered ||
     safety.impact.triggered ||
