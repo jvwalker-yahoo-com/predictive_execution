@@ -8,7 +8,7 @@ let riskData = [];
 let impactData = [];
 let slippageData = [];
 let latencyData = [];
-
+ 
 let chartRisk, chartImpact, chartSlippage, chartLatency;
 let chartBubble, chartHeatmap, chartTimeline, chartSafety;
 
