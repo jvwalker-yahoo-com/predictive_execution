@@ -5,6 +5,7 @@
 # =========================================================
 # Predictive Execution – Full FastAPI Server (Validated)
 # =========================================================
+
 from fastapi import FastAPI
 import random
 import time
@@ -24,8 +25,8 @@ def state():
     return {
         "regime": "NORMAL",
         "risk": round(random.random(), 4),
-        "slippage": round(random.random(), 4),
         "impact": round(random.random(), 4),
+        "slippage": round(random.random(), 4),
         "latency": round(random.uniform(1, 5), 4),
         "events": round(random.uniform(0, 2), 4),
         "fill_quality": 1
@@ -43,19 +44,30 @@ def decision():
         "arbitrationNotes": {}
     }
 
+# ---------------------------------------------------------
+# FEDERATION SUMMARY (NOW DYNAMIC)
+# ---------------------------------------------------------
+
 @app.get("/federation")
 def federation():
     return {
-        "outputs": ["RiskBrain", "ImpactBrain"],
-        "federation": "model"
+        "outputs": [
+            random.choice(["riskSignal", "impactSignal", "latencySignal"]),
+            random.choice(["riskModel", "impactModel", "slippageModel"])
+        ],
+        "federation": random.choice(["model1", "model2", "model3"])
     }
+
+# ---------------------------------------------------------
+# ARBITRATION
+# ---------------------------------------------------------
 
 @app.get("/arbitration")
 def arbitration():
     mode = random.choice(["OK", "WARN", "CRITICAL"])
     return {
         "final_mode": mode,
-        "reason": "model",
+        "reason": random.choice(["model1", "model2", "model3"]),
         "arbitrationNotes": {}
     }
 
@@ -103,8 +115,8 @@ def anomaly_detector():
         "slippage_jump": random.random() > 0.9
     }
 
-@app.get("/mode_events")
-def mode_events():
+@app.get("/node_events")
+def node_events():
     return {
         "events": [
             {"mode": "OK", "timestamp": time.time()},
@@ -134,4 +146,3 @@ def sync_drift():
         "drift_ms": random.randint(0, 250),
         "status": "OK" if random.random() < 0.8 else "DRIFTING"
     }
-
