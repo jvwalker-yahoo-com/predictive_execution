@@ -5,325 +5,133 @@
 # =========================================================
 # Predictive Execution – Full FastAPI Server (Validated)
 # =========================================================
-
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse
 import random
 import time
-import os
 
 app = FastAPI()
 
-# -----------------------------
-# CORS
-# -----------------------------
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# -----------------------------
-# STATIC DASHBOARD
-# -----------------------------
-app.mount("/dashboard", StaticFiles(directory="dashboard", html=True), name="dashboard")
+# ---------------------------------------------------------
+# CORE STATE ENDPOINTS
+# ---------------------------------------------------------
 
 @app.get("/")
 def root():
-    return RedirectResponse("/dashboard")
-
-# -----------------------------
-# DEBUG FILES
-# -----------------------------
-@app.get("/debug_files")
-def debug_files():
-    try:
-        return {
-            "cwd": os.getcwd(),
-            "files": os.listdir("."),
-            "dashboard_exists": os.path.isdir("dashboard"),
-            "dashboard_files": os.listdir("dashboard") if os.path.isdir("dashboard") else "MISSING"
-        }
-    except Exception as e:
-        return {"error": str(e)}
-
-# -----------------------------
-# INTERNAL ENGINES
-# -----------------------------
-
-def risk_brain():
-    return {
-        "score": round(random.uniform(0.05, 0.9), 4),
-        "confidence": round(random.uniform(0.7, 0.95), 4),
-        "trend": [round(random.uniform(0.05, 0.9), 4) for _ in range(3)]
-    }
-
-def impact_brain():
-    return {
-        "impact": round(random.uniform(0.1, 3.0), 4),
-        "confidence": round(random.uniform(0.6, 0.9), 4),
-        "trend": [round(random.uniform(0.1, 3.0), 4) for _ in range(3)]
-    }
-
-def slippage_brain():
-    return {
-        "slippage": round(random.uniform(0.05, 2.0), 4),
-        "confidence": round(random.uniform(0.5, 0.85), 4),
-        "trend": [round(random.uniform(0.05, 2.0), 4) for _ in range(3)]
-    }
-
-def latency_brain():
-    return {
-        "latency": round(random.uniform(0.1, 30), 4),
-        "confidence": round(random.uniform(0.8, 0.99), 4),
-        "trend": [round(random.uniform(0.1, 30), 4) for _ in range(3)]
-    }
-
-def diagnostics_engine():
-    now = time.time()
-    return {
-        "RiskBrain": {"status": "OK", "drift": round(random.uniform(0.0, 0.05), 4), "lastUpdate": now},
-        "ImpactBrain": {"status": "OK", "drift": round(random.uniform(0.0, 0.05), 4), "lastUpdate": now},
-        "SlippageBrain": {"status": "OK", "drift": round(random.uniform(0.0, 0.05), 4), "lastUpdate": now},
-        "LatencyBrain": {"status": "OK", "drift": round(random.uniform(0.0, 0.05), 4), "lastUpdate": now}
-    }
-
-mode_history = []
-
-def mode_switch_engine(mode: str):
-    mode_history.append({"timestamp": time.time(), "mode": mode})
-    if len(mode_history) > 50:
-        mode_history.pop(0)
-
-def safety_engine(risk, impact, slippage, latency):
-    return {
-        "risk": {"triggered": random.choice([True, False]), "value": risk},
-        "impact": {"triggered": random.choice([True, False]), "value": impact},
-        "slippage": {"triggered": random.choice([True, False]), "value": slippage},
-        "latency": {"triggered": random.choice([True, False]), "value": latency}
-    }
-
-def bubble_chart_engine(risk, impact, slippage, latency):
-    return [
-        {
-            "risk": risk,
-            "impact": impact,
-            "slippage": slippage,
-            "latency": latency,
-            "size": round((risk + impact + slippage) * 4, 2),
-            "color": random.choice(["red", "orange", "yellow"])
-        }
-    ]
-
-def heatmap_engine():
-    return {
-        "matrix": [
-            [round(random.uniform(0.5, 0.99), 4) for _ in range(4)]
-            for _ in range(3)
-        ],
-        "labels": ["RiskBrain", "ImpactBrain", "SlippageBrain", "LatencyBrain"]
-    }
-
-def latency_spike_engine():
-    return {
-        "spikes": [
-            {
-                "timestamp": time.time(),
-                "latency": round(random.uniform(10, 40), 4),
-                "severity": random.choice(["LOW", "MEDIUM", "HIGH"])
-            }
-        ]
-    }
-
-# -----------------------------
-# LIVE ENDPOINTS
-# -----------------------------
+    return {"status": "ok"}
 
 @app.get("/state")
-def get_state():
+def state():
     return {
         "regime": "NORMAL",
-        "risk": round(random.uniform(0.05, 0.9), 4),
-        "slippage": round(random.uniform(0.05, 2.0), 4),
-        "impact": round(random.uniform(0.1, 3.0), 4),
-        "latency": round(random.uniform(0.1, 30), 4),
-        "sync": round(random.uniform(0, 10), 4),
+        "risk": round(random.random(), 4),
+        "slippage": round(random.random(), 4),
+        "impact": round(random.random(), 4),
+        "latency": round(random.uniform(1, 5), 4),
+        "events": round(random.uniform(0, 2), 4),
         "fill_quality": 1
     }
 
 @app.get("/decision")
-def get_decision():
-    modes = ["OK", "RISK_HIGH", "IMPACT_HIGH", "SLIPPAGE_HIGH"]
-    mode = random.choice(modes)
-    mode_switch_engine(mode)
+def decision():
+    mode = random.choice(["OK", "WARN", "SLIPPAGE_HIGH", "IMPACT_HIGH"])
     return {
         "autonomous": "ON",
-        "final_mode": mode,
-        "arbitration": {
-            "finalMode": mode,
-            "reason": "Model-driven arbitration",
-            "arbitrationNotes": {}
-        }
+        "main_mode": mode,
+        "arbitrationId": "",
+        "finalMode": mode,
+        "reason": "Model-driven arbitration",
+        "arbitrationNotes": {}
     }
 
 @app.get("/federation")
-def get_federation():
+def federation():
     return {
         "outputs": ["RiskBrain", "ImpactBrain"],
         "federation": "model"
     }
 
 @app.get("/arbitration")
-def get_arbitration():
-    mode = random.choice(["OK", "RISK_HIGH", "IMPACT_HIGH", "SLIPPAGE_HIGH"])
+def arbitration():
+    mode = random.choice(["OK", "WARN", "CRITICAL"])
     return {
         "final_mode": mode,
         "reason": "model",
         "arbitrationNotes": {}
     }
 
-@app.get("/visualizer")
-def get_visualizer():
-    return {
-        "RiskBrain": risk_brain(),
-        "ImpactBrain": impact_brain(),
-        "SlippageBrain": slippage_brain(),
-        "LatencyBrain": latency_brain()
-    }
-
-@app.get("/diagnostics")
-def get_diagnostics():
-    return diagnostics_engine()
-
-@app.get("/timeline")
-def get_timeline():
-    return mode_history
-
-@app.get("/safety_triggers")
-def get_safety_triggers():
-    return safety_engine(
-        round(random.uniform(0.05, 0.9), 4),
-        round(random.uniform(0.1, 3.0), 4),
-        round(random.uniform(0.05, 2.0), 4),
-        round(random.uniform(0.1, 30), 4)
-    )
+# ---------------------------------------------------------
+# VISUALIZER ENDPOINTS
+# ---------------------------------------------------------
 
 @app.get("/bubble_chart")
-def get_bubble_chart():
-    return bubble_chart_engine(
-        round(random.uniform(0.05, 0.9), 4),
-        round(random.uniform(0.1, 3.0), 4),
-        round(random.uniform(0.05, 2.0), 4),
-        round(random.uniform(0.1, 30), 4)
-    )
+def bubble_chart():
+    return [{
+        "risk": round(random.random(), 3),
+        "impact": round(random.random(), 3),
+        "size": random.randint(10, 40)
+    }]
 
 @app.get("/heatmap")
-def get_heatmap():
-    return heatmap_engine()
+def heatmap():
+    matrix = [[round(random.random(), 3) for _ in range(3)] for _ in range(4)]
+    return {"matrix": matrix}
 
-@app.get("/latency_spikes")
-def get_latency_spikes():
-    return latency_spike_engine()
+@app.get("/timeline")
+def timeline():
+    modes = ["OK", "WARN", "CRITICAL"]
+    return [{"mode": random.choice(modes)} for _ in range(12)]
 
-@app.get("/episodes")
-def get_episodes():
-    return [
-        {
-            "id": str(random.randint(10000, 99999)),
-            "symbol": "CLOUD",
-            "riskScore": round(random.uniform(0.05, 0.9), 4),
-            "timestamp": time.time(),
-            "impactBps": round(random.uniform(0.1, 3.0), 4),
-            "syncDriftPs": round(random.uniform(0, 10), 4),
-            "autoPilotMode": "ON",
-            "twinStatus": "ALIGNED",
-            "tags": []
-        }
-    ]
-
-@app.get("/performance")
-def get_performance():
-    return [
-        {
-            "id": int(time.time()),
-            "riskScore": round(random.uniform(0.05, 0.9), 4),
-            "impactBps": round(random.uniform(0.1, 3.0), 4),
-            "finalMode": random.choice(["OK", "RISK_HIGH", "IMPACT_HIGH", "SLIPPAGE_HIGH"]),
-            "timestamp": time.time(),
-            "name": "RiskBrain",
-            "slippageBps": round(random.uniform(0.05, 2.0), 4),
-            "safetyTriggered": random.choice([True, False])
-        }
-    ]
-
-@app.get("/precedents")
-def get_precedents():
-    return [
-        {
-            "timestamp": time.time(),
-            "final_mode": random.choice(["OK", "RISK_HIGH", "IMPACT_HIGH", "SLIPPAGE_HIGH"]),
-            "risk": round(random.uniform(0.05, 0.9), 4),
-            "impact": round(random.uniform(0.1, 3.0), 4),
-            "latency": round(random.uniform(0.1, 30), 4),
-            "slippage": round(random.uniform(0.05, 2.0), 4)
-        }
-    ]
-
-@app.get("/risk_matrix")
-def get_risk_matrix():
-    risk = round(random.uniform(0.05, 0.9), 4)
-    impact = round(random.uniform(0.1, 3.0), 4)
-    slippage = round(random.uniform(0.05, 2.0), 4)
-    latency = round(random.uniform(0.1, 30), 4)
-
+@app.get("/safety_triggers")
+def safety_triggers():
     return {
-        "risk": risk,
-        "impact": impact,
-        "slippage": slippage,
-        "latency": latency,
-        "quadrants": {
-            "risk_impact": "CRITICAL" if risk * impact > 0.3 else "SAFE",
-            "risk_slippage": "CRITICAL" if risk * slippage > 0.3 else "SAFE",
-            "risk_latency": "CRITICAL" if risk * latency > 5 else "SAFE"
-        }
+        "risk": {"triggered": random.random() > 0.85},
+        "impact": {"triggered": random.random() > 0.85},
+        "slippage": {"triggered": random.random() > 0.85},
+        "latency": {"triggered": random.random() > 0.85}
     }
 
-# -----------------------------
-# ALIAS ENDPOINTS
-# -----------------------------
+# ---------------------------------------------------------
+# COCKPIT ENDPOINTS
+# ---------------------------------------------------------
 
-@app.get("/federation_visualizer")
-def alias_federation_visualizer():
-    return get_visualizer()
+@app.get("/anomaly_detector")
+def anomaly_detector():
+    return {
+        "risk_spike": random.random() > 0.8,
+        "latency_spike": random.random() > 0.85,
+        "impact_jump": random.random() > 0.9,
+        "slippage_jump": random.random() > 0.9
+    }
 
-@app.get("/brain_diagnostics")
-def alias_brain_diagnostics():
-    return get_diagnostics()
+@app.get("/mode_events")
+def mode_events():
+    return {
+        "events": [
+            {"mode": "OK", "timestamp": time.time()},
+            {"mode": "WARN", "timestamp": time.time() - 5},
+            {"mode": "CRITICAL", "timestamp": time.time() - 10}
+        ]
+    }
 
-@app.get("/mode_timeline")
-def alias_mode_timeline():
-    return get_timeline()
+@app.get("/quadrant")
+def quadrant():
+    return {
+        "risk": round(random.random(), 3),
+        "impact": round(random.random(), 3),
+        "quadrant": random.choice(["LOW", "MEDIUM", "HIGH", "CRITICAL"])
+    }
 
-@app.get("/safety")
-def alias_safety():
-    return get_safety_triggers()
+@app.get("/heartbeat")
+def heartbeat():
+    return {
+        "alive": True,
+        "timestamp": time.time()
+    }
 
-@app.get("/risk_bubbles")
-def alias_risk_bubbles():
-    return get_bubble_chart()
+@app.get("/sync_drift")
+def sync_drift():
+    return {
+        "drift_ms": random.randint(0, 250),
+        "status": "OK" if random.random() < 0.8 else "DRIFTING"
+    }
 
-@app.get("/confidence_heatmap")
-def alias_confidence_heatmap():
-    return get_heatmap()
-
-@app.get("/latency")
-def alias_latency():
-    return get_latency_spikes()
-
-@app.get("/slippage")
-def alias_slippage():
-    return get_latency_spikes()
