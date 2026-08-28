@@ -91,11 +91,11 @@ def decision():
     mode = model_mode(risk, impact, slippage)
 
     return {
-        "automation": "ON",
-        "auto_mode": mode,
-        "manual_mode": mode,
-        "reason": "Mode-driven arbitration",
-        "arbitrationNotes": []
+        "autonomous": "ON",
+        "main_mode": mode,
+        "finalMode": mode,
+        "reason": "Model arbitration",
+        "arbitrationNotes": {}
     }
 
 # -----------------------------
@@ -115,9 +115,9 @@ def arbitration():
     mode = model_mode(risk, impact, slippage)
 
     return {
-        "signal_mode": mode,
-        "reason": "model3",
-        "arbitrationNotes": []
+        "final_mode": mode,
+        "reason": "model arbitration",
+        "arbitrationNotes": {}
     }
 
 # -----------------------------
@@ -159,8 +159,8 @@ def safety_triggers():
 def anomaly_detector():
     return {
         "risk_spike": model_risk() > 0.85,
-        "impact_spike": model_impact() > 0.85,
         "latency_spike": model_latency() > 20,
+        "impact_jump": model_impact() > 0.85,
         "slippage_jump": model_slippage() > 0.85
     }
 
