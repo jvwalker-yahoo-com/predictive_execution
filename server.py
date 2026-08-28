@@ -8,11 +8,22 @@
 
 # server.py
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import random
 import time
 import math
 
 app = FastAPI()
+
+# -----------------------------
+# CORS (REQUIRED FOR DASHBOARD)
+# -----------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # -----------------------------
 # INTERNAL MODEL SIMULATION
@@ -58,7 +69,7 @@ def model_federation():
     }
 
 # -----------------------------
-# CORE STATE ENDPOINTS
+# ENDPOINTS
 # -----------------------------
 
 @app.get("/")
@@ -67,17 +78,12 @@ def root():
 
 @app.get("/state")
 def state():
-    risk = model_risk()
-    impact = model_impact()
-    slippage = model_slippage()
-    latency = model_latency()
-
     return {
         "regime": "NORMAL",
-        "risk": risk,
-        "impact": impact,
-        "slippage": slippage,
-        "latency": latency,
+        "risk": model_risk(),
+        "impact": model_impact(),
+        "slippage": model_slippage(),
+        "latency": model_latency(),
         "events": round(random.uniform(0, 2), 4),
         "fill_quality": 1
     }
@@ -87,7 +93,6 @@ def decision():
     risk = model_risk()
     impact = model_impact()
     slippage = model_slippage()
-
     mode = model_mode(risk, impact, slippage)
 
     return {
@@ -98,10 +103,6 @@ def decision():
         "arbitrationNotes": {}
     }
 
-# -----------------------------
-# FEDERATION / ARBITRATION
-# -----------------------------
-
 @app.get("/federation")
 def federation():
     return model_federation()
@@ -111,7 +112,6 @@ def arbitration():
     risk = model_risk()
     impact = model_impact()
     slippage = model_slippage()
-
     mode = model_mode(risk, impact, slippage)
 
     return {
@@ -119,41 +119,6 @@ def arbitration():
         "reason": "model arbitration",
         "arbitrationNotes": {}
     }
-
-# -----------------------------
-# VISUALIZER ENDPOINTS
-# -----------------------------
-
-@app.get("/bubble_chart")
-def bubble_chart():
-    return [{
-        "risk": model_risk(),
-        "impact": model_impact(),
-        "size": random.randint(10, 40)
-    }]
-
-@app.get("/heatmap")
-def heatmap():
-    matrix = [[round(random.random(), 3) for _ in range(3)] for _ in range(4)]
-    return {"matrix": matrix}
-
-@app.get("/timeline")
-def timeline():
-    modes = ["OK", "WARN", "CRITICAL"]
-    return [{"mode": random.choice(modes)} for _ in range(12)]
-
-@app.get("/safety_triggers")
-def safety_triggers():
-    return {
-        "risk": {"triggered": model_risk() > 0.75},
-        "impact": {"triggered": model_impact() > 0.75},
-        "slippage": {"triggered": model_slippage() > 0.75},
-        "latency": {"triggered": model_latency() > 18}
-    }
-
-# -----------------------------
-# COCKPIT ENDPOINTS
-# -----------------------------
 
 @app.get("/anomaly_detector")
 def anomaly_detector():
@@ -196,15 +161,9 @@ def quadrant():
 
 @app.get("/heartbeat")
 def heartbeat():
-    return {
-        "alive": True,
-        "timestamp": time.time()
-    }
+    return {"alive": True, "timestamp": time.time()}
 
 @app.get("/sync_drift")
 def sync_drift():
     drift = random.randint(0, 250)
-    return {
-        "drift_ms": drift,
-        "status": "OK" if drift < 120 else "DRIFTING"
-    }
+    return {"drift_ms": drift, "status": "OK" if drift < 120 else "DRIFTING"}
