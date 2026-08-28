@@ -6,6 +6,7 @@
 # Predictive Execution – Full FastAPI Server (Validated)
 # =========================================================
 
+# server.py
 from fastapi import FastAPI
 import random
 import time
@@ -13,9 +14,9 @@ import math
 
 app = FastAPI()
 
-# ---------------------------------------------------------
+# -----------------------------
 # INTERNAL MODEL SIMULATION
-# ---------------------------------------------------------
+# -----------------------------
 
 def model_risk():
     base = 0.35 + math.sin(time.time() / 8) * 0.25
@@ -56,9 +57,9 @@ def model_federation():
         "federation": random.choice(["model1", "model2", "model3"])
     }
 
-# ---------------------------------------------------------
+# -----------------------------
 # CORE STATE ENDPOINTS
-# ---------------------------------------------------------
+# -----------------------------
 
 @app.get("/")
 def root():
@@ -90,25 +91,20 @@ def decision():
     mode = model_mode(risk, impact, slippage)
 
     return {
-        "autonomous": "ON",
-        "main_mode": mode,
-        "arbitrationId": "",
-        "finalMode": mode,
-        "reason": "Model arbitration",
-        "arbitrationNotes": {}
+        "automation": "ON",
+        "auto_mode": mode,
+        "manual_mode": mode,
+        "reason": "Mode-driven arbitration",
+        "arbitrationNotes": []
     }
 
-# ---------------------------------------------------------
-# FEDERATION SUMMARY
-# ---------------------------------------------------------
+# -----------------------------
+# FEDERATION / ARBITRATION
+# -----------------------------
 
 @app.get("/federation")
 def federation():
     return model_federation()
-
-# ---------------------------------------------------------
-# ARBITRATION
-# ---------------------------------------------------------
 
 @app.get("/arbitration")
 def arbitration():
@@ -119,14 +115,14 @@ def arbitration():
     mode = model_mode(risk, impact, slippage)
 
     return {
-        "final_mode": mode,
-        "reason": "model arbitration",
-        "arbitrationNotes": {}
+        "signal_mode": mode,
+        "reason": "model3",
+        "arbitrationNotes": []
     }
 
-# ---------------------------------------------------------
+# -----------------------------
 # VISUALIZER ENDPOINTS
-# ---------------------------------------------------------
+# -----------------------------
 
 @app.get("/bubble_chart")
 def bubble_chart():
@@ -155,16 +151,16 @@ def safety_triggers():
         "latency": {"triggered": model_latency() > 18}
     }
 
-# ---------------------------------------------------------
+# -----------------------------
 # COCKPIT ENDPOINTS
-# ---------------------------------------------------------
+# -----------------------------
 
 @app.get("/anomaly_detector")
 def anomaly_detector():
     return {
         "risk_spike": model_risk() > 0.85,
+        "impact_spike": model_impact() > 0.85,
         "latency_spike": model_latency() > 20,
-        "impact_jump": model_impact() > 0.85,
         "slippage_jump": model_slippage() > 0.85
     }
 
