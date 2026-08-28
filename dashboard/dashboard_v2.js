@@ -6,7 +6,8 @@
 // Predictive Execution Dashboard – Full JS (Validated)
 // =========================================================
 
-const BASE = "";
+const BASE_URL = "https://predictive-execution-1.onrender.com";
+
 
 // chart buffers
 let riskData = [];
