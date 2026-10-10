@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Predictive Execution Cockpit — Design Document</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 24px;
+      background: #05060a;
+      color: #e6f1ff;
+      line-height: 1.5;
+    }
+    h1, h2, h3 {
+      color: #4fd1ff;
+      margin-top: 24px;
+    }
+    h1 { font-size: 28px; }
+    h2 { font-size: 22px; }
+    h3 { font-size: 18px; }
+    pre {
+      background: #0f172a;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 13px;
+      color: #e5e7eb;
+    }
+    code {
+      background: #111827;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    .section {
+      margin-bottom: 24px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Predictive Execution Cockpit — Full Design Document</h1>
+
+  <div class="section">
+    <h2>1. System Purpose</h2>
+    <p>
+      The Predictive Execution Cockpit provides a real-time operational view of an execution engine. It visualizes:
+    </p>
+    <ul>
+      <li>Regime state</li>
+      <li>Risk / Impact / Slippage / Latency</li>
+      <li>Arbitration &amp; federation decisions</li>
+      <li>Anomaly detection</li>
+      <li>Event timelines</li>
+      <li>Quadrant classification</li>
+      <li>Sync drift</li>
+      <li>Heartbeat</li>
+    </ul>
+    <p>
+      The system is model-agnostic, data-agnostic, and deployment-agnostic.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>2. High-Level Architecture</h2>
+    <h3>2.1 Components</h3>
+    <ul>
+      <li><strong>Backend API (FastAPI):</strong> Provides metrics and decision logic via JSON endpoints.</li>
+      <li><strong>Frontend Cockpit (Static HTML/JS):</strong> Polls backend every second and renders panels.</li>
+      <li><strong>Deployment:</strong> Backend as Web Service, frontend as Static Site, communication via HTTPS + CORS.</li>
+    </ul>
+
+    <h3>2.2 Architecture Diagram</h3>
+    <pre>
++---------------------------+        +---------------------------+
+|      Cockpit Frontend     |        |       FastAPI Backend     |
+|  (Static HTML/CSS/JS)     |        |   (JSON API Endpoints)    |
++---------------------------+        +---------------------------+
+| - index.html              |        | - /state                  |
+| - style.css               |        | - /decision               |
+| - dashboard.js            |        | - /federation             |
+|                           |        | - /arbitration            |
+| Polls backend via fetch() |        | - /anomaly_detector       |
++---------------------------+        | - /node_events            |
+             |                       | - /quadrant               |
+             | HTTPS                 | - /heartbeat              |
+             v                       | - /sync_drift             |
++---------------------------------------------------------------+
+|                    Render / Hosting Environment               |
++---------------------------------------------------------------+
+    </pre>
+  </div>
+
+  <div class="section">
+    <h2>3. Backend Design</h2>
+
+    <h3>3.1 Technology</h3>
+    <ul>
+      <li>Python 3</li>
+      <li>FastAPI</li>
+      <li>Gunicorn + Uvicorn worker</li>
+      <li>Stateless, horizontally scalable</li>
+    </ul>
+
+    <h3>3.2 Backend Component Diagram (UML)</h3>
+    <pre>
++--------------------------------------------------------------+
+|                        FastAPI Backend                       |
++--------------------------------------------------------------+
+|  MetricsModule                                               |
+|    - model_risk()                                            |
+|    - model_impact()                                          |
+|    - model_slippage()                                        |
+|    - model_latency()                                         |
+|                                                              |
+|  RegimeModule                                                |
+|    - model_mode()                                            |
+|                                                              |
+|  FederationModule                                            |
+|    - model_federation()                                      |
+|                                                              |
+|  ArbitrationModule                                           |
+|    - arbitration()                                           |
+|                                                              |
+|  AnomalyModule                                               |
+|    - anomaly_detector()                                      |
+|                                                              |
+|  QuadrantModule                                              |
+|    - quadrant()                                              |
+|                                                              |
+|  SyncModule                                                  |
+|    - sync_drift()                                            |
+|                                                              |
+|  HeartbeatModule                                             |
+|    - heartbeat()                                             |
++--------------------------------------------------------------+
+    </pre>
+
+    <h3>3.3 Core Logic</h3>
+    <p><strong>Risk:</strong></p>
+    <pre>risk = clamp(0, 1, 0.35 + sin(t/8)*0.25 + noise)</pre>
+
+    <p><strong>Impact:</strong></p>
+    <pre>impact = clamp(0, 1, 0.40 + cos(t/10)*0.20 + noise)</pre>
+
+    <p><strong>Slippage:</strong></p>
+    <pre>slippage = clamp(0, 1, 0.30 + sin(t/6)*0.30 + noise)</pre>
+
+    <p><strong>Latency:</strong></p>
+    <pre>latency = max(1, 12 + sin(t/4)*6 + noise)</pre>
+
+    <p><strong>Regime Mode (OK/WARN/CRITICAL):</strong></p>
+    <pre>
+score = (risk + impact + slippage) / 3
+
+if score &lt; 0.33: mode = "OK"
+elif score &lt; 0.66: mode = "WARN"
+else: mode = "CRITICAL"
+    </pre>
+
+    <p><strong>Federation:</strong> returns model outputs and selected model (model1/model2/model3).</p>
+    <p><strong>Arbitration:</strong> returns final_mode based on mode.</p>
+
+    <p><strong>Anomaly Detection:</strong></p>
+    <pre>
+risk_spike    = risk &gt; 0.85
+impact_jump   = impact &gt; 0.85
+slippage_jump = slippage &gt; 0.85
+latency_spike = latency &gt; 20
+    </pre>
+
+    <p><strong>Quadrant:</strong></p>
+    <pre>
+LOW:     risk &lt; 0.33 AND impact &lt; 0.33
+MEDIUM:  risk &lt; 0.66 AND impact &lt; 0.66
+HIGH:    risk &lt; 0.66 AND impact &gt;= 0.66
+CRITICAL: else
+    </pre>
+
+    <p><strong>Sync Drift:</strong></p>
+    <pre>
+drift_ms = random(0..250)
+status   = "OK" if drift_ms &lt; 120 else "DRIFTING"
+    </pre>
+
+    <p><strong>Heartbeat:</strong> returns <code>{ alive: true, timestamp }</code>.</p>
+  </div>
+
+  <div class="section">
+    <h2>4. Backend API Specification</h2>
+
+    <table border="1" cellpadding="6" cellspacing="0">
+      <tr>
+        <th>Endpoint</th>
+        <th>Purpose</th>
+        <th>Key Fields</th>
+      </tr>
+      <tr>
+        <td><code>/</code></td>
+        <td>Health</td>
+        <td><code>{ "status": "ok" }</code></td>
+      </tr>
+      <tr>
+        <td><code>/state</code></td>
+        <td>Core regime state</td>
+        <td>regime, risk, impact, slippage, latency, events, fill_quality</td>
+      </tr>
+      <tr>
+        <td><code>/decision</code></td>
+        <td>Automation decision</td>
+        <td>autonomous, main_mode, finalMode, reason</td>
+      </tr>
+      <tr>
+        <td><code>/federation</code></td>
+        <td>Model federation</td>
+        <td>outputs[], federation</td>
+      </tr>
+      <tr>
+        <td><code>/arbitration</code></td>
+        <td>Final arbitration</td>
+        <td>final_mode, reason</td>
+      </tr>
+      <tr>
+        <td><code>/anomaly_detector</code></td>
+        <td>Anomaly flags</td>
+        <td>risk_spike, impact_jump, slippage_jump, latency_spike</td>
+      </tr>
+      <tr>
+        <td><code>/node_events</code></td>
+        <td>Recent events</td>
+        <td>events[] (mode, timestamp)</td>
+      </tr>
+      <tr>
+        <td><code>/quadrant</code></td>
+        <td>Risk/impact quadrant</td>
+        <td>risk, impact, quadrant</td>
+      </tr>
+      <tr>
+        <td><code>/heartbeat</code></td>
+        <td>Liveness</td>
+        <td>alive, timestamp</td>
+      </tr>
+      <tr>
+        <td><code>/sync_drift</code></td>
+        <td>Clock drift</td>
+        <td>drift_ms, status</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>5. Frontend Cockpit Design</h2>
+
+    <h3>5.1 Technology</h3>
+    <ul>
+      <li>Static HTML</li>
+      <li>CSS</li>
+      <li>JavaScript (no framework)</li>
+    </ul>
+
+    <h3>5.2 Layout</h3>
+    <p>Grid of 9 panels:</p>
+    <ul>
+      <li>STATE</li>
+      <li>DECISION</li>
+      <li>FEDERATION</li>
+      <li>ARBITRATION</li>
+      <li>ANOMALY</li>
+      <li>EVENTS</li>
+      <li>QUADRANT</li>
+      <li>HEARTBEAT</li>
+      <li>SYNC DRIFT</li>
+    </ul>
+
+    <h3>5.3 Frontend Component Diagram (UML)</h3>
+    <pre>
++--------------------------------------------------------------+
+|                        Cockpit Frontend                      |
++--------------------------------------------------------------+
+|  PollingEngine                                               |
+|    - tick()                                                  |
+|    - setInterval()                                           |
+|                                                              |
+|  FetchEngine                                                 |
+|    - fetchJSON()                                             |
+|                                                              |
+|  Panels                                                      |
+|    - StatePanel                                              |
+|    - DecisionPanel                                           |
+|    - FederationPanel                                         |
+|    - ArbitrationPanel                                        |
+|    - AnomalyPanel                                            |
+|    - EventsPanel                                             |
+|    - QuadrantPanel                                           |
+|    - HeartbeatPanel                                          |
+|    - DriftPanel                                              |
++--------------------------------------------------------------+
+    </pre>
+
+    <h3>5.4 Sequence Diagram (Frontend &amp; Backend)</h3>
+    <pre>
+User        -> Browser      : Load index.html
+Browser     -> dashboard.js : Execute script
+dashboard.js -> Backend     : GET /state
+Backend     -> dashboard.js : JSON { ... }
+dashboard.js -> DOM         : Update STATE panel
+
+dashboard.js -> Backend     : GET /decision
+Backend     -> dashboard.js : JSON { ... }
+dashboard.js -> DOM         : Update DECISION panel
+
+... repeated for all endpoints ...
+
+Loop every 1 second via setInterval(tick, 1000)
+    </pre>
+
+    <h3>5.5 Data Flow</h3>
+    <pre>
+const BASE_URL = "https://predictive-execution-1.onrender.com";
+
+async function fetchJSON(path) {
+  const res = await fetch(BASE_URL + path);
+  return await res.json();
+}
+
+async function updatePanel(id, path) {
+  const el = document.getElementById(id);
+  el.textContent = JSON.stringify(await fetchJSON(path), null, 2);
+}
+
+function tick() {
+  updatePanel("state-json", "/state");
+  updatePanel("decision-json", "/decision");
+  updatePanel("federation-json", "/federation");
+  updatePanel("arbitration-json", "/arbitration");
+  updatePanel("anomaly-json", "/anomaly_detector");
+  updatePanel("events-json", "/node_events");
+  updatePanel("quadrant-json", "/quadrant");
+  updatePanel("heartbeat-json", "/heartbeat");
+  updatePanel("drift-json", "/sync_drift");
+}
+
+setInterval(tick, 1000);
+tick();
+    </pre>
+  </div>
+
+  <div class="section">
+    <h2>6. Deployment Design</h2>
+
+    <h3>6.1 Backend (Render Web Service)</h3>
+    <ul>
+      <li><strong>Build Command:</strong> <code>pip install -r requirements.txt</code></li>
+      <li><strong>Start Command:</strong> <code>gunicorn server:app --worker-class uvicorn.workers.UvicornWorker</code></li>
+      <li><strong>Files:</strong> <code>server.py</code>, <code>requirements.txt</code></li>
+      <li><strong>Health Check:</strong> <code>/heartbeat</code> or <code>/</code></li>
+    </ul>
+
+    <h3>6.2 Frontend (Static Site)</h3>
+    <ul>
+      <li><strong>Publish Directory:</strong> repo root or <code>frontend/</code></li>
+      <li><strong>Files:</strong> <code>index.html</code>, <code>style.css</code>, <code>dashboard.js</code></li>
+      <li><strong>BASE_URL:</strong> points to backend URL.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>7. Extension Roadmap</h2>
+    <ul>
+      <li>Replace simulated metrics with real execution feeds.</li>
+      <li>Implement real federation (multi-model scoring, confidence weighting).</li>
+      <li>Implement real arbitration (rule-based overrides, safety constraints).</li>
+      <li>Upgrade anomaly detection (EWMA, Z-score, regime-dependent thresholds).</li>
+      <li>Upgrade cockpit visuals (charts, heatmaps, timelines, alerts).</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>8. Handover Summary</h2>
+    <p>
+      This HTML document contains the full architecture, logic, API spec, frontend design, UML diagrams, sequence diagrams, and deployment model for the Predictive Execution Cockpit. It is ready to be converted to PDF and handed to Antigravity for implementation, extension, or productionization.
+    </p>
+  </div>
+</body>
+</html>

@@ -167,3 +167,32 @@ def heartbeat():
 def sync_drift():
     drift = random.randint(0, 250)
     return {"drift_ms": drift, "status": "OK" if drift < 120 else "DRIFTING"}
+
+# =========================================================================
+# GLOBAL MARKET INTELLIGENCE (Frankfurter, CoinGecko, FRED, SEC, Polygon)
+# =========================================================================
+from market_intel import MarketIntelSuite
+import asyncio
+
+intel_engine = MarketIntelSuite()
+
+@app.get("/api/macro/forex", tags=["Market Intelligence"])
+async def get_macro_forex(base: str = "USD"):
+    return await asyncio.to_thread(intel_engine.get_forex_rates, base)
+
+@app.get("/api/macro/crypto", tags=["Market Intelligence"])
+async def get_macro_crypto():
+    return await asyncio.to_thread(intel_engine.get_crypto_prices)
+
+@app.get("/api/macro/fred", tags=["Market Intelligence"])
+async def get_macro_fred():
+    return await asyncio.to_thread(intel_engine.get_fred_macro_indicators)
+
+@app.get("/api/sec/filings/{symbol}", tags=["Market Intelligence"])
+async def get_sec_filings(symbol: str, limit: int = 10):
+    return await asyncio.to_thread(intel_engine.get_sec_edgar_filings, symbol, limit)
+
+@app.get("/api/market/ticks/{symbol}", tags=["Market Intelligence"])
+async def get_market_ticks(symbol: str):
+    return await asyncio.to_thread(intel_engine.get_stock_ticks_and_quote, symbol)
+

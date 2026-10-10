@@ -1,0 +1,158 @@
+1. System Purpose
+The Predictive Execution Cockpit provides a real‑time operational view of an execution engine. It visualizes:
+
+Regime state
+
+Risk / Impact / Slippage / Latency
+
+Arbitration & federation decisions
+
+Anomaly detection
+
+Event timelines
+
+Quadrant classification
+
+Sync drift
+
+Heartbeat
+
+The system is stateless, scalable, model‑agnostic, and data‑agnostic.
+
+
+2. High‑Level Architecture
+Components:
+
+Backend API (FastAPI)  
+Provides all metrics and decision logic via JSON endpoints.
+
+Frontend Cockpit (Static HTML/JS)  
+Polls backend every second and renders cockpit panels.
+
+Deployment  
+Backend = Render Web Service
+Frontend = Render Static Site
+Communication = HTTPS + CORS
+
+Architecture Diagram (ASCII):
+
++---------------------------+        +---------------------------+
+|      Cockpit Frontend     |        |       FastAPI Backend     |
+|  (Static HTML/CSS/JS)     |        |   (JSON API Endpoints)    |
++---------------------------+        +---------------------------+
+| - index.html              |        | - /state                  |
+| - style.css               |        | - /decision               |
+| - dashboard.js            |        | - /federation             |
+|                           |        | - /arbitration            |
+| Polls backend via fetch() |        | - /anomaly_detector       |
++---------------------------+        | - /node_events            |
+             |                       | - /quadrant               |
+             | HTTPS                 | - /heartbeat              |
+             v                       | - /sync_drift             |
++---------------------------------------------------------------+
+|                    Render / Hosting Environment               |
++---------------------------------------------------------------+
+
+3. Backend Architecture
+Tech stack:
+
+Python 3
+
+FastAPI
+
+Gunicorn + Uvicorn worker
+
+Stateless
+
+No database required
+
+Backend Component Diagram (UML):
++--------------------------------------------------------------+
+|                        FastAPI Backend                       |
++--------------------------------------------------------------+
+|  MetricsModule                                               |
+|    - model_risk()                                            |
+|    - model_impact()                                          |
+|    - model_slippage()                                        |
+|    - model_latency()                                         |
+|                                                              |
+|  RegimeModule                                                |
+|    - model_mode()                                            |
+|                                                              |
+|  FederationModule                                            |
+|    - model_federation()                                      |
+|                                                              |
+|  ArbitrationModule                                           |
+|    - arbitration()                                           |
+|                                                              |
+|  AnomalyModule                                               |
+|    - anomaly_detector()                                      |
+|                                                              |
+|  QuadrantModule                                              |
+|    - quadrant()                                              |
+|                                                              |
+|  SyncModule                                                  |
+|    - sync_drift()                                            |
+|                                                              |
+|  HeartbeatModule                                             |
+|    - heartbeat()                                             |
++--------------------------------------------------------------+
+
+4. Backend Data Flow
+Frontend -> Backend: GET /state
+Backend -> Metrics Module: compute risk, impact, slippage, latency
+Metrics Module --> Backend: metrics
+Backend -> Regime Module: compute mode
+Regime Module --> Backend: mode
+Backend --> Frontend: JSON {risk, impact, slippage, latency, mode}
+Frontend -> Cockpit Panels: update display
+
+5. Backend Sequence Diagram
+Frontend -> Backend: GET /state
+Backend -> MetricsModule: compute metrics
+MetricsModule -> Backend: return metrics
+Backend -> RegimeModule: compute mode
+RegimeModule -> Backend: return mode
+Backend -> Frontend: JSON response
+Frontend -> DOM: update cockpit panel
+
+6. Backend Logic Specification
+6.1 Risk
+risk = clamp(0, 1, 0.35 + sin(t/8)*0.25 + noise)
+
+6.2 Impact
+impact = clamp(0, 1, 0.40 + cos(t/10)*0.20 + noise)
+
+6.3 Slippage
+slippage = clamp(0, 1, 0.30 + sin(t/6)*0.30 + noise)
+
+6.4 Latency
+latency = max(1, 12 + sin(t/4)*6 + noise)
+
+6.5 Regime Mode
+score = (risk + impact + slippage) / 3
+
+if score < 0.33: OK
+elif score < 0.66: WARN
+else: CRITICAL
+
+6.6 Federation
+Outputs: risk, impact, slippage
+
+Selects: model1 / model2 / model3
+
+6.7 Arbitration
+Uses mode
+
+Returns final_mode
+6.8 Anomaly Detection
+risk_spike     = risk > 0.85
+impact_jump    = impact > 0.85
+slippage_jump  = slippage > 0.85
+latency_spike  = latency > 20
+
+
+
+
+
+
