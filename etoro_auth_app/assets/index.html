@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>eToro ReAuth Mobile</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header Bar -->
+  <header class="top-nav">
+    <div class="brand">
+      <span class="pulse-dot" id="serverPulse"></span>
+      <div class="brand-text">
+        <h1>eToro ReAuth</h1>
+        <span class="sub">COCKPIT MOBILE COMPANION</span>
+      </div>
+    </div>
+    <div class="header-status">
+      <span class="badge badge-mode" id="headerModeBadge">LIVE</span>
+      <span class="badge badge-ping" id="headerPingBadge">-- ms</span>
+    </div>
+  </header>
+
+  <main class="content-scroll">
+    <!-- CARD 1: BACKEND SERVER CONFIG -->
+    <section class="card">
+      <div class="card-header">
+        <span class="num">01</span>
+        <h2>BACKEND COCKPIT SERVER</h2>
+        <span class="status-indicator" id="backendStatusTag">DISCONNECTED</span>
+      </div>
+      <div class="card-body">
+        <label class="input-label" for="backendUrlInput">Server Base URL (Render / LAN / Cloud):</label>
+        <div class="input-group">
+          <input type="url" id="backendUrlInput" value="https://autonomous-trading-cockpit.onrender.com" placeholder="https://autonomous-trading-cockpit.onrender.com" spellcheck="false" autocomplete="off">
+          <button type="button" class="btn btn-secondary" id="btnTestBackend">PING</button>
+        </div>
+        <div class="preset-links">
+          <button type="button" class="chip" id="presetRender">Render Cloud Server</button>
+          <button type="button" class="chip" id="presetLocalHost">Local PC (192.168.8.105:8000)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CARD 2: CURRENT SERVER AUTH DIAGNOSTICS -->
+    <section class="card">
+      <div class="card-header">
+        <span class="num">02</span>
+        <h2>CURRENT AUTH STATUS</h2>
+        <button type="button" class="btn-icon" id="btnRefreshStatus" title="Refresh Status">🔄</button>
+      </div>
+      <div class="card-body">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-label">eToro Lockout Cooldown</span>
+            <span class="stat-value" id="statusCooldown">CLEAR</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Server Configured</span>
+            <span class="stat-value" id="statusConfigured">UNKNOWN</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">User Key Fingerprint</span>
+            <span class="stat-value text-mono" id="statusMaskedUserKey">--</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">API Key Fingerprint</span>
+            <span class="stat-value text-mono" id="statusMaskedApiKey">--</span>
+          </div>
+        </div>
+
+        <div class="alert-box alert-error hidden" id="authErrorAlert">
+          <strong>Last Auth Error:</strong>
+          <p id="authErrorMessage">--</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CARD 3: REAUTHORIZE CREDENTIALS FORM -->
+    <section class="card card-accent">
+      <div class="card-header">
+        <span class="num">03</span>
+        <h2>REAUTHORIZE ETORO KEYS</h2>
+      </div>
+      <div class="card-body">
+        <!-- x-user-key (Personal secret token) -->
+        <div class="form-group">
+          <div class="label-row">
+            <label class="input-label" for="inputUserKey">x-user-key (Personal Token):</label>
+            <div class="token-flags">
+              <span class="flag-pill" id="flagKeyLen">0 chars</span>
+              <span class="flag-pill" id="flagKeyEy">JWT? No</span>
+            </div>
+          </div>
+          
+          <div class="textarea-wrapper">
+            <textarea id="inputUserKey" rows="4" placeholder="Paste your eToro x-user-key here (starts with ey...)" spellcheck="false" autocomplete="off"></textarea>
+          </div>
+
+          <div class="quick-paste-bar">
+            <button type="button" class="btn btn-primary btn-paste" id="btnPasteUserKey">
+              📋 PASTE FROM CLIPBOARD
+            </button>
+            <button type="button" class="btn btn-secondary" id="btnClearUserKey">CLEAR</button>
+            <button type="button" class="btn btn-secondary" id="btnToggleUserKeyVisibility">SHOW</button>
+          </div>
+          <span class="hint-text">Auto-sanitizer removes quotes and whitespace upon pasting.</span>
+        </div>
+
+        <!-- x-api-key (App Key) -->
+        <div class="form-group">
+          <div class="label-row">
+            <label class="input-label" for="inputApiKey">x-api-key (App Key):</label>
+            <button type="button" class="btn-text" id="btnResetDefaultApiKey">Reset Default</button>
+          </div>
+          <input type="text" id="inputApiKey" placeholder="sdgdskldFPLGfjHn1421dgnlxdGTbngdflg6290bRjslfihsjhSDsdgGHH25hjf" spellcheck="false" autocomplete="off">
+        </div>
+
+        <!-- Base URL -->
+        <div class="form-group">
+          <label class="input-label" for="inputBaseUrl">eToro Base URL:</label>
+          <input type="text" id="inputBaseUrl" value="https://public-api.etoro.com" spellcheck="false">
+        </div>
+
+        <!-- Execution Mode -->
+        <div class="form-group">
+          <label class="input-label">Target Execution Mode:</label>
+          <div class="mode-selector">
+            <label class="mode-option">
+              <input type="radio" name="execMode" value="live" id="modeRadioLive" checked>
+              <span class="mode-box mode-live">
+                <strong>LIVE</strong>
+                <small>Real Execution</small>
+              </span>
+            </label>
+            <label class="mode-option">
+              <input type="radio" name="execMode" value="demo" id="modeRadioDemo">
+              <span class="mode-box mode-demo">
+                <strong>DEMO</strong>
+                <small>Virtual Simulation</small>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button type="button" class="btn btn-action-primary" id="btnPushConfig">
+            ⚡ PUSH &amp; REAUTHORIZE ON SERVER
+          </button>
+          <button type="button" class="btn btn-action-test" id="btnTestServerConn">
+            🧪 TEST LIVE AUTH VIA SERVER
+          </button>
+          <button type="button" class="btn btn-action-direct" id="btnDirectPhoneTest">
+            🌐 DIRECT PHONE-TO-ETORO PING
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CARD 4: PORTFOLIO & TELEMETRY AUDIT -->
+    <section class="card">
+      <div class="card-header">
+        <span class="num">04</span>
+        <h2>PORTFOLIO SNAPSHOT</h2>
+        <button type="button" class="btn-secondary btn-sm" id="btnCheckPortfolio">FETCH</button>
+      </div>
+      <div class="card-body">
+        <div class="stats-grid" id="portfolioStatsGrid">
+          <div class="stat-item">
+            <span class="stat-label">Equity</span>
+            <span class="stat-value color-gold" id="statEquity">$0.00</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Available Cash</span>
+            <span class="stat-value color-emerald" id="statCash">$0.00</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Active Positions</span>
+            <span class="stat-value" id="statPositions">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Realized P&amp;L</span>
+            <span class="stat-value" id="statRealizedPnl">$0.00</span>
+          </div>
+        </div>
+        <div id="positionsListContainer" style="margin-top: 10px;"></div>
+      </div>
+    </section>
+
+    <!-- CARD 5: DIAGNOSTIC LOG CONSOLE -->
+    <section class="card">
+      <div class="card-header">
+        <span class="num">05</span>
+        <h2>DIAGNOSTIC LOG</h2>
+        <div class="console-actions">
+          <button type="button" class="btn-text" id="btnClearLog">Clear</button>
+          <button type="button" class="btn-text" id="btnCopyLog">Copy</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <pre class="console-box" id="logConsole">[Ready] Mobile eToro Authorizer Initialized.
+Enter server address and paste x-user-key to begin.</pre>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
