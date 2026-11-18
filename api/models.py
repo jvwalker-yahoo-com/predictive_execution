@@ -1,9 +1,7 @@
 # paste SQLAlchemy models here
 
 from sqlalchemy import Column, Integer, String, Float, Boolean, JSON
-from sqlalchemy.orm import declarative_base
-
-Base = declarative_base()
+from engine.database import Base
 
 # ---------------------------------------------------------
 # Temporal Memory Episodes

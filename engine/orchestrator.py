@@ -2,7 +2,7 @@
 import time
 import uuid
 
-from engine.database import SessionLocal
+from engine.database import SessionLocal, init_db
 from api.models import (
     TemporalEpisode,
     BrainPerformanceSample,
@@ -18,6 +18,7 @@ from engine.predictive_execution_full import Orchestrator as BaseOrchestrator
 class Orchestrator(BaseOrchestrator):
     def __init__(self):
         super().__init__()
+        init_db()
         self.db = SessionLocal()
 
         self._load_genomes()

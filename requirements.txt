@@ -5,5 +5,7 @@ pydantic
 gunicorn
 streamlit
 pandas
+numpy
+yfinance
 requests
 python-dotenv

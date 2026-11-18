@@ -1,76 +1,152 @@
 """
-Predictive Execution Cockpit - Streamlit Edition
-Visualizes operational regime, risk/impact/slippage quadrants, and live market intelligence
-(Frankfurter, CoinGecko, FRED, SEC EDGAR, Polygon/Finnhub).
+Predictive Execution Cockpit & OpenBB Decision System - Streamlit Edition
+Visualizes operational regime, risk/impact/slippage quadrants, OpenBB Unified Data Router
+intelligence (Deep Equity Fundamentals, Global News Sentiment, FRED Macro), and live decision mandates.
 """
 
-import time
-import math
 import random
 import pandas as pd
 import streamlit as st
+from engine.predict import predict
 from market_intel import MarketIntelSuite
 
-st.set_page_config(page_title="Predictive Execution Cockpit", page_icon="⚡", layout="wide")
+st.set_page_config(
+    page_title="Predictive Execution & OpenBB Decision Cockpit",
+    page_icon="⚡",
+    layout="wide",
+)
 
 intel = MarketIntelSuite()
 
-st.title("⚡ Predictive Execution Cockpit & Market Confluence")
-st.caption("Real-Time Operational Cockpit • Regime State • Global Macro • SEC EDGAR • Polygon Ticks")
+st.title("⚡ Predictive Execution Cockpit & OpenBB Decision Engine")
+st.caption(
+    "Unified Data Router (obb) • Multi-Brain Arbitration • Deep Equity Fundamentals • Global News Sentiment • FRED Macro • SEC EDGAR"
+)
 
 # Sidebar
-st.sidebar.header("🕹️ Execution Controls")
-asset = st.sidebar.selectbox("Active Ticker", ["AAPL", "NVDA", "TSLA", "MSFT", "AMZN", "META", "AMD"], index=0)
-auto_refresh = st.sidebar.checkbox("Auto Refresh Simulation", value=True)
+st.sidebar.header("🕹️ Execution & OpenBB Controls")
+asset = st.sidebar.selectbox(
+    "Active Ticker",
+    ["AAPL", "NVDA", "TSLA", "MSFT", "AMZN", "META", "AMD", "GOOGL", "PLTR", "SPY"],
+    index=0,
+)
+auto_refresh = st.sidebar.checkbox("Live Telemetry Mode", value=True)
 
-# Metrics Simulation (from 1. System Purpose.txt)
-t = time.time()
-risk = round(max(0.0, min(1.0, 0.35 + math.sin(t / 8) * 0.25 + random.uniform(-0.03, 0.03))), 3)
-impact = round(max(0.0, min(1.0, 0.40 + math.cos(t / 10) * 0.20 + random.uniform(-0.03, 0.03))), 3)
-slippage = round(max(0.0, min(1.0, 0.30 + math.sin(t / 6) * 0.30 + random.uniform(-0.03, 0.03))), 3)
-latency = round(max(1.0, 12.0 + math.sin(t / 4) * 6.0 + random.uniform(-1.0, 1.0)), 1)
-score = (risk + impact + slippage) / 3.0
-regime_mode = "OK" if score < 0.33 else ("WARN" if score < 0.66 else "CRITICAL")
-mode_color = "#00e676" if regime_mode == "OK" else ("#f59e0b" if regime_mode == "WARN" else "#ff5252")
+# Execute OpenBB-grounded prediction & intelligence bundle
+pred_bundle = predict(asset)
+obb_bundle = intel.get_openbb_intelligence(asset)
+obb_dec = pred_bundle.get("openbb_decision", {})
+qt = obb_bundle.get("quote_technicals", {})
+fund = obb_bundle.get("fundamentals", {})
+news = obb_bundle.get("news_sentiment", {})
+macro = obb_bundle.get("macro", {})
+
+risk = float(pred_bundle["risk"])
+impact = float(pred_bundle["impact"])
+slippage = float(pred_bundle["slippage"])
+latency = float(pred_bundle["latency"])
+regime_mode = str(pred_bundle["final_mode"])
+signal_action = str(pred_bundle.get("signal_action", "HOLD"))
+conviction = float(pred_bundle.get("conviction_score", 5.0))
 
 # Top KPI row
-c1, c2, c3, c4, c5 = st.columns(5)
-c1.metric("REGIME MODE", regime_mode)
-c2.metric("RISK COEFFICIENT", f"{risk:.3f}")
-c3.metric("MARKET IMPACT", f"{impact:.3f}")
-c4.metric("SLIPPAGE", f"{slippage:.3f}")
-c5.metric("LATENCY", f"{latency:.1f}ms")
+c1, c2, c3, c4, c5, c6, c7 = st.columns(7)
+c1.metric("OPENBB MANDATE", signal_action)
+c2.metric("CONVICTION", f"{conviction:.1f} / 10")
+c3.metric("REGIME MODE", regime_mode)
+c4.metric("RISK SCORE", f"{risk:.3f}")
+c5.metric("MARKET IMPACT", f"{impact:.3f}")
+c6.metric("SLIPPAGE", f"{slippage:.3f}")
+c7.metric("LATENCY", f"{latency:.1f}ms")
 
 st.divider()
 
 # Cockpit Tabs
-t_cockpit, t_sec, t_macro = st.tabs([
-    "📊 Predictive Execution Cockpit",
-    "🏛️ SEC EDGAR Filings & Polygon Ticks",
-    "🌍 Global Macro, Forex & Crypto Pulse"
+t_cockpit, t_fund, t_news, t_sec, t_macro = st.tabs([
+    "🎯 OpenBB Decision & Execution Cockpit",
+    "📊 Deep Equity & Fundamentals",
+    "📰 Global News & Sentiment",
+    "🏛️ SEC EDGAR Filings & Ticks",
+    "🌍 Global Macro, Forex & Crypto Pulse",
 ])
 
 with t_cockpit:
-    col_l, col_r = st.columns([1.5, 1.5])
+    col_l, col_r = st.columns([1.4, 1.6])
     with col_l:
-        st.subheader("Regime State & Anomaly Radar")
-        st.progress(min(1.0, risk), text=f"Model Risk: {risk:.3f}")
-        st.progress(min(1.0, impact), text=f"Market Impact: {impact:.3f}")
-        st.progress(min(1.0, slippage), text=f"Estimated Slippage: {slippage:.3f}")
-        
-        q = "LOW" if risk < 0.33 and impact < 0.33 else ("MEDIUM" if risk < 0.66 and impact < 0.66 else ("HIGH" if impact >= 0.66 else "CRITICAL"))
-        st.info(f"**Quadrant Classification:** {q} | **Drift:** {random.randint(10, 85)}ms (Nominal)")
+        st.subheader("Regime State & Microstructure Telemetry")
+        st.progress(min(1.0, risk), text=f"Model Risk (Vol + Macro + News): {risk:.3f}")
+        st.progress(min(1.0, impact), text=f"Market Impact (Order/Liquidity): {impact:.3f}")
+        st.progress(min(1.0, slippage), text=f"Estimated Slippage (Spread {qt.get('estimated_spread_bps', 2.5)} bps): {slippage:.3f}")
+
+        q = (
+            "LOW" if risk < 0.33 and impact < 0.33
+            else ("MEDIUM" if risk < 0.66 and impact < 0.66 else ("HIGH" if impact >= 0.66 else "CRITICAL"))
+        )
+        st.info(
+            f"**Quadrant Classification:** {q} | **Provider:** `{qt.get('provider', 'openbb')}` | **Drift:** {random.randint(10, 45)}ms"
+        )
+
+        st.markdown("#### Factor Point Attribution")
+        f_scores = obb_dec.get("factor_scores", {})
+        fc1, fc2, fc3, fc4 = st.columns(4)
+        fc1.metric("Technicals", f"{f_scores.get('technicals', 0.0):+.2f}")
+        fc2.metric("Fundamentals", f"{f_scores.get('fundamentals', 0.0):+.2f}")
+        fc3.metric("News Catalyst", f"{f_scores.get('news_sentiment', 0.0):+.2f}")
+        fc4.metric("Macro Filter", f"{f_scores.get('macro_regime', 0.0):+.2f}")
 
     with col_r:
-        st.subheader(f"⚡ Intraday Ticks: {asset}")
-        quote = intel.get_stock_ticks_and_quote(asset)
-        if quote.get("price", 0) > 0:
-            st.metric(f"{asset} Price", f"${quote['price']:.2f}", f"{quote.get('change_pct', 0):+.2f}%")
-            st.write(f"• **Day Range:** ${quote.get('low', 0):.2f} - ${quote.get('high', 0):.2f}")
-            st.write(f"• **Open / Prev Close:** ${quote.get('open', 0):.2f} / ${quote.get('prev_close', 0):.2f}")
-            st.caption(f"Source: {quote.get('source', 'Finnhub').upper()}")
-        else:
-            st.info("Market data syncing...")
+        st.subheader(f"🎯 OpenBB Decision Mandate • {asset}")
+        price = float(qt.get("price", 0.0))
+        st.metric(
+            f"{asset} Spot Price",
+            f"${price:.2f}",
+            f"{qt.get('change_pct', 0.0):+.2f}%",
+        )
+        m_a, m_b, m_c = st.columns(3)
+        m_a.metric("Stop Loss (1.5 ATR)", f"${obb_dec.get('stop_loss', 0.0):.2f}")
+        m_b.metric("Take Profit (2.5 ATR)", f"${obb_dec.get('take_profit', 0.0):.2f}")
+        m_c.metric(
+            "Analyst Target",
+            f"${fund.get('target_mean'):.2f}" if fund.get("target_mean") else "N/A",
+            f"{obb_dec.get('upside_pct', 0.0):+.1f}%",
+        )
+
+        st.markdown("#### Multi-Brain Decision Evidence")
+        for drv in obb_dec.get("drivers", []):
+            st.write(f"• {drv}")
+
+with t_fund:
+    st.subheader(f"📊 Deep Equity & Fundamentals • {asset}")
+    f1, f2, f3, f4 = st.columns(4)
+    f1.metric("Trailing P/E", f"{fund['pe_ratio']:.2f}" if isinstance(fund.get("pe_ratio"), (int, float)) else "N/A")
+    f2.metric("Forward P/E", f"{fund['forward_pe']:.2f}" if isinstance(fund.get("forward_pe"), (int, float)) else "N/A")
+    f3.metric(
+        "Profit Margin",
+        f"{fund['profit_margin'] * 100:.1f}%" if isinstance(fund.get("profit_margin"), (int, float)) else "N/A",
+    )
+    f4.metric(
+        "Return on Equity (ROE)",
+        f"{fund['return_on_equity'] * 100:.1f}%" if isinstance(fund.get("return_on_equity"), (int, float)) else "N/A",
+    )
+
+    f5, f6, f7, f8 = st.columns(4)
+    f5.metric("Wall St Consensus", str(fund.get("recommendation", "Hold")))
+    f6.metric("Fundamental Health", f"{fund.get('fundamental_score', 0.5):.2f} / 1.00")
+    f7.metric("VWAP / SMA20", f"${qt.get('vwap', 0.0):.2f} / ${qt.get('sma20', 0.0):.2f}")
+    f8.metric("RSI (14) / Ann. Vol", f"{qt.get('rsi14', 50.0):.1f} / {qt.get('realized_volatility', 0.22) * 100:.1f}%")
+
+with t_news:
+    st.subheader(f"📰 Global News & Sentiment • {asset}")
+    n1, n2, n3 = st.columns(3)
+    n1.metric("Sentiment Regime", str(news.get("sentiment_label", "NEUTRAL")))
+    n2.metric("Net Sentiment Score", f"{news.get('net_sentiment', 0.0):+.2f}")
+    n3.metric("Articles Analyzed", str(news.get("count", 0)))
+
+    for art in news.get("articles", []):
+        st.markdown(
+            f"**[{art.get('sentiment', 'NEUTRAL')}] [{art.get('headline', '')}]({art.get('url', '#')})** — *{art.get('source', 'Wire')}*  \n"
+            f"{art.get('summary', '')}"
+        )
 
 with t_sec:
     st.subheader(f"📄 Direct SEC EDGAR Corporate Filings • {asset}")
@@ -82,11 +158,11 @@ with t_sec:
 
 with t_macro:
     st.subheader("Federal Reserve Macroeconomic Indicators (FRED)")
-    fred = intel.get_fred_macro_indicators()
-    m1, m2, m3 = st.columns(3)
-    m1.metric("Fed Funds Rate", f"{fred.get('fed_funds_rate', {}).get('value', 3.75):.2f}%")
-    m2.metric("10Y Treasury Yield", f"{fred.get('treasury_10y', {}).get('value', 4.12):.2f}%")
-    m3.metric("Yield Curve Spread", f"{fred.get('yield_curve_spread', 0.37):+.2f}%")
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Fed Funds Rate", f"{macro.get('fed_funds_rate', {}).get('value', 3.75):.2f}%")
+    m2.metric("10Y Treasury Yield", f"{macro.get('treasury_10y', {}).get('value', 4.12):.2f}%")
+    m3.metric("Yield Curve Spread", f"{macro.get('yield_curve_spread', 0.37):+.2f}%")
+    m4.metric("Macro Regime", str(macro.get("macro_regime", "NORMAL")))
 
     st.markdown("---")
     st.subheader("💱 Real-Time Foreign Exchange (Frankfurter - Zero Auth)")
